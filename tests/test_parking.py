@@ -28,3 +28,9 @@ def test_create_employee_profile():
 
     assert fname.value == 'ณัฐพงศ์'
     assert lname.value == 'คนเก่ง'
+
+def test_create_employee_empty_profile():
+    with pytest.raises(ValueError):
+        FirstName(value='    ')
+    with pytest.raises(ValueError):
+        LastName(value='       ')
