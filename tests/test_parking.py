@@ -1,5 +1,5 @@
 import pytest
-
+from domain.models import Employee
 from domain.value_object import ParkingHour, FirstName, LastName
 
 
@@ -40,3 +40,12 @@ def test_first_name_too_short():
         FirstName(value='ก')
     with pytest.raises(ValueError):
         LastName(value='ง')
+
+def test_employee_entiry_should_have_id_and_full_name():
+    fname = FirstName(value='ณัฐพงศ์')
+    lname = LastName(value='ป๋าไอที')
+
+    emp = Employee(emp_id=101, first_name=fname, last_name=lname)
+
+    assert emp.emp_id == 101
+    assert emp.get_full_name() == 'ณัฐพงศ์ ป๋าไอที'

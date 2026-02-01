@@ -7,7 +7,7 @@ class ParkingHour(BaseModel):
 
     @field_validator('value', mode='before')
     @classmethod
-    def round_up_and_check_range(cls, v):
+    def round_up_and_check_range(cls, v:str) -> str:
         '''กำหนดชั่วโมงปัดเศษขึ้นและ ไม่น้อยกว่า 0 ไม่เกิน 24'''
         # 1. ลอจิกการปัดเศษ: ใช้สูตรคณิตศาสตร์
         v = math.ceil(v)
@@ -24,7 +24,7 @@ class FirstName(BaseModel):
 
     @field_validator('value')
     @classmethod
-    def not_empty(cls, v):
+    def not_empty(cls, v:str) -> str:
 
         fname = v.strip()
 
@@ -40,7 +40,7 @@ class LastName(BaseModel):
 
     @field_validator('value')
     @classmethod
-    def not_empty(cls, v):
+    def not_empty(cls, v:str) -> str:
 
         lname = v.strip()
 
