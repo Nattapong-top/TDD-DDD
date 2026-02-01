@@ -18,3 +18,23 @@ class ParkingHour(BaseModel):
         if v > 24:
             raise ValueError('ห้ามจอดเกิน 24 ชั่วโมง')
         return v
+    
+class FirstName(BaseModel):
+    value: str
+
+    @field_validator('value')
+    @classmethod
+    def not_empty(cls, v):
+        if not v.strip():
+            raise ValueError('กรุณากรอกชื่อด้วยครับ')
+        return v
+    
+class LastName(BaseModel):
+    value: str
+
+    @field_validator('value')
+    @classmethod
+    def not_empty(cls, v):
+        if not v.strip():
+            raise ValueError('กรุณากรอกนามสกุลด้วยครับ')
+        return v

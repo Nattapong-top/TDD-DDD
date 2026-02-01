@@ -1,6 +1,6 @@
 import pytest
 
-from domain.value_object import ParkingHour
+from domain.value_object import ParkingHour, FirstName, LastName
 
 
 def test_parking_hour_should_fail_if_negetive():
@@ -20,3 +20,11 @@ def test_parking_hour_rounding_up():
     # โจทย์: ถ้าจอด 5.1 ชม. ป๋าต้องปัดเป็น 6 ชม. (ปัดขึ้นเสมอ)
     hour = ParkingHour(value=5.1)
     assert hour.value == 6
+
+def test_create_employee_profile():
+    fname = FirstName(value='ณัฐพงศ์')
+
+    lname = LastName(value='คนเก่ง')
+
+    assert fname.value == 'ณัฐพงศ์'
+    assert lname.value == 'คนเก่ง'
