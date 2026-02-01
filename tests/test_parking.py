@@ -34,3 +34,9 @@ def test_create_employee_empty_profile():
         FirstName(value='    ')
     with pytest.raises(ValueError):
         LastName(value='       ')
+
+def test_first_name_too_short():
+    with pytest.raises(ValueError):
+        FirstName(value='ก')
+    with pytest.raises(ValueError):
+        LastName(value='ง')

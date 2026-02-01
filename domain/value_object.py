@@ -25,9 +25,15 @@ class FirstName(BaseModel):
     @field_validator('value')
     @classmethod
     def not_empty(cls, v):
-        if not v.strip():
+
+        fname = v.strip()
+
+        if not fname.strip():
             raise ValueError('กรุณากรอกชื่อด้วยครับ')
-        return v
+        if len(fname) < 2:
+            raise ValueError('ชื่อสั้งไปไหมครับ')
+        
+        return fname
     
 class LastName(BaseModel):
     value: str
@@ -35,6 +41,12 @@ class LastName(BaseModel):
     @field_validator('value')
     @classmethod
     def not_empty(cls, v):
-        if not v.strip():
+
+        lname = v.strip()
+
+        if not lname:
             raise ValueError('กรุณากรอกนามสกุลด้วยครับ')
-        return v
+        if len(lname) < 2:
+            raise ValueError('นามสกุลสั้งเกินไป')
+        
+        return lname
