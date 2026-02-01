@@ -8,3 +8,10 @@ def test_parking_hour_should_fail_if_negetive():
     with pytest.raises(ValueError):
         ParkingHour(value=-1)
 
+def test_parking_hour_should_fail_if_24():
+    with pytest.raises(ValueError):
+        ParkingHour(value=25)
+
+def test_parking_hour_nomal_5():
+    hour = ParkingHour(value=5)
+    assert hour.value == 5
