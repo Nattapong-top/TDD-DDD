@@ -47,3 +47,14 @@ class LastName(BaseModel):
         if len(lname) < 2:
             raise ValueError('นามสกุลสั้งเกินไป')
         return lname
+    
+
+class MoneyTHB(BaseModel):
+    value: float
+    
+    @field_validator('value')
+    @classmethod
+    def check_not_negative(cls, m:float) -> float:
+        if m < 0:
+            raise ValueError('เงินต้องไม่น้อยกว่าศูนย์')
+        return m
