@@ -11,7 +11,6 @@ class ParkingHour(BaseModel):
         '''กำหนดชั่วโมงปัดเศษขึ้นและ ไม่น้อยกว่า 0 ไม่เกิน 24'''
         # 1. ลอจิกการปัดเศษ: ใช้สูตรคณิตศาสตร์
         v = math.ceil(v)
-
         # 2. ลอจิกการกำหนดช่วงเวลา
         if v < 0:
             raise ValueError('เวลาจอดติดไม่ได้')
@@ -19,6 +18,7 @@ class ParkingHour(BaseModel):
             raise ValueError('ห้ามจอดเกิน 24 ชั่วโมง')
         return v
     
+
 class FirstName(BaseModel):
     value: str
 
@@ -27,14 +27,13 @@ class FirstName(BaseModel):
     def not_empty(cls, v:str) -> str:
 
         fname = v.strip()
-
         if not fname.strip():
             raise ValueError('กรุณากรอกชื่อด้วยครับ')
         if len(fname) < 2:
             raise ValueError('ชื่อสั้งไปไหมครับ')
-        
         return fname
     
+
 class LastName(BaseModel):
     value: str
 
@@ -43,10 +42,8 @@ class LastName(BaseModel):
     def not_empty(cls, v:str) -> str:
 
         lname = v.strip()
-
         if not lname:
             raise ValueError('กรุณากรอกนามสกุลด้วยครับ')
         if len(lname) < 2:
             raise ValueError('นามสกุลสั้งเกินไป')
-        
         return lname
