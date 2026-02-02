@@ -64,9 +64,9 @@ class Employee(BaseModel):
         self.last_name = new_lname
 
     
-class ParkingTicket(BaseModel):
+class ParkingTicket(BaseEntity):
     ticket_id: int
-
+    is_paid: bool = False
     # ฟังก์ชันคำนวณเงิน (Calculate Fee)
     # รับค่า 'ชั่วโมง' เป็นเลขธรรมดา และ 'ราคา' เป็นกล่องเงิน
     # แล้วส่งผลลัพธ์กลับมาเป็น 'กล่องเงิน' (MoneyTHB)
@@ -75,3 +75,9 @@ class ParkingTicket(BaseModel):
 
         # ห่อผลลัพธ์ใส่กล่องเงินก่อนส่งคืน (Encapsulation)
         return MoneyTHB(value=amount)
+    
+    def mark_as_paid(self) -> None:
+        if self.is_paid:
+            raise ValueError('Ticket จ่ายไปแล้ว')
+        self.is_paid = True
+        super().increment_version()
