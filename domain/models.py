@@ -1,11 +1,11 @@
 from pydantic import BaseModel
-from domain.value_object import FirstName, LastName
+from domain.value_object import FirstName, LastName, MoneyTHB
 
 
 class Employee(BaseModel):
     # Identity (ไอ-เดน-ทิ-ตี้): ตัวตนที่ไม่มีวันเปลี่ยน
     emp_id: int
-    
+
     # Attributes (แอท-ทริ-บิวท์): คุณลักษณะที่ใช้ Value Object ที่ป๋าปั้นมา
     first_name: FirstName
     last_name: LastName
@@ -25,3 +25,16 @@ class Employee(BaseModel):
         
         # ถ้าผ่านกฎ ก็ทำการเปลี่ยนค่าข้างใน
         self.last_name = new_lname
+
+    
+class ParkingTicket(BaseModel):
+    ticket_id: int
+
+    # ฟังก์ชันคำนวณเงิน (Calculate Fee)
+    # รับค่า 'ชั่วโมง' เป็นเลขธรรมดา และ 'ราคา' เป็นกล่องเงิน
+    # แล้วส่งผลลัพธ์กลับมาเป็น 'กล่องเงิน' (MoneyTHB)
+    def calculate_total(self, hours:int, rate:MoneyTHB) -> MoneyTHB:
+        amount = hours * rate.value
+
+        # ห่อผลลัพธ์ใส่กล่องเงินก่อนส่งคืน (Encapsulation)
+        return MoneyTHB(value=amount)
