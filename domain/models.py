@@ -2,7 +2,16 @@ from pydantic import BaseModel
 from domain.value_object import FirstName, LastName, MoneyTHB
 
 
-class ParkingSlot(BaseModel):
+# 1. คลาสแม่ (Base Class) คอยคุมเรื่อง Version
+class BaseEntity(BaseModel):
+    version: int = 1
+
+    def increment_version(self):
+        self.version += 1
+
+
+# 2. คลาสลูก (Entity) ที่มีความฉลาดในตัว
+class ParkingSlot(BaseEntity):
     slot_id: str
     is_vacant: bool = True  # 1. เริ่มต้นให้ว่างไว้ก่อน (True)
 
@@ -13,6 +22,14 @@ class ParkingSlot(BaseModel):
         
         # 4. สั่งเปลี่ยนสถานะในตัวมันเองให้เป็น "ไม่ว่าง"
         self.is_vacant = False
+
+        # สะกิดแม่ให้ช่วยอัปเกรดเวอร์ชัน (ใช้ super)
+        super().increment_version()
+
+    def release(self) -> None:
+        """พฤติกรรม: ปล่อยรถออก"""
+        self.is_vacant = True
+        super().increment_version()
 
 
 class Employee(BaseModel):
