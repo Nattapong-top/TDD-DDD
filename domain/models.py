@@ -2,6 +2,19 @@ from pydantic import BaseModel
 from domain.value_object import FirstName, LastName, MoneyTHB
 
 
+class ParkingSlot(BaseModel):
+    slot_id: str
+    is_vacant: bool = True  # 1. เริ่มต้นให้ว่างไว้ก่อน (True)
+
+    def occupy(self) -> None:
+        # 3. เช็คสถานะ "ข้างในตัวมันเอง" (self)
+        if not self.is_vacant:
+            raise ValueError('ช่องจอดนี้ มีรถเข้าจอดแล้วครับ')
+        
+        # 4. สั่งเปลี่ยนสถานะในตัวมันเองให้เป็น "ไม่ว่าง"
+        self.is_vacant = False
+
+
 class Employee(BaseModel):
     # Identity (ไอ-เดน-ทิ-ตี้): ตัวตนที่ไม่มีวันเปลี่ยน
     emp_id: int
