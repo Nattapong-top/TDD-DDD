@@ -10,6 +10,13 @@ class BaseEntity(BaseModel):
         self.version += 1
 
 
+class EntiryTest(BaseEntity):
+    name:str
+
+    def trigger_test(self) -> None:
+        super().increment_version()
+
+
 # 2. คลาสลูก (Entity) ที่มีความฉลาดในตัว
 class ParkingSlot(BaseEntity):
     slot_id: str
