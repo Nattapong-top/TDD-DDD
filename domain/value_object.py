@@ -7,7 +7,7 @@ class ParkingHour(BaseModel):
     # แช่แข็ง Object ห้ามใครแก้ค่าหลังสร้างเสร็จ
     model_config = ConfigDict(frozen=True)
     value:int
-    
+
     # ใส่ ClassVar[ประเภท] คลุมไว้ เพื่อบอกว่าเป็น "กฎส่วนกลาง"
     MIN_LIMIT: ClassVar[int] = 0
     MAX_LIMT: ClassVar[int] = 24
@@ -61,11 +61,23 @@ class LastName(BaseModel):
     
 
 class MoneyTHB(BaseModel):
+    # 1. แช่แข็ง Object ห้ามใครแก้ค่าเงินหลังจากสร้างเสร็จแล้ว
+    model_config = ConfigDict(frozen=True)
     value: float
+
+    # 2. ตั้งกฎขั้นต่ำไว้ที่บอร์ดกลาง (Class Variable)
+    MIN_AMOUNT: ClassVar[float] = 0.0
     
-    @field_validator('value')
+    @field_validator('value', mode='before')
     @classmethod
-    def check_not_negative(cls, m:float) -> float:
-        if m < 0:
-            raise ValueError('เงินต้องไม่น้อยกว่าศูนย์')
-        return m
+    def check_not_negative(cls, v:Any) -> float:
+        """ตรวจสอบว่าจำนวนเงินต้องเป็นตัวเลขและไม่ติดลบ"""
+        # 3. รับของมาเป็น Any แล้วลองแปลงร่างเป็นเลขทศนิยม
+        try:
+            val = float(v)
+        except (ValueError, TabError):
+            raise ValueError('จำนวนเงินต้องเป็นตัวเลขเท่านั้นครับ')
+        
+        if val < cls.MIN_AMOUNT:
+            raise ValueError(f'เงินต้องไม่น้อยกว่า {cls.MIN_AMOUNT} บาทครับ')
+        return val
