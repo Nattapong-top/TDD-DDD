@@ -1,22 +1,33 @@
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, field_validator, ConfigDict
 import math
+from typing import Any, ClassVar
 
 
 class ParkingHour(BaseModel):
+    # แช่แข็ง Object ห้ามใครแก้ค่าหลังสร้างเสร็จ
+    model_config = ConfigDict(frozen=True)
     value:int
+    
+    # ใส่ ClassVar[ประเภท] คลุมไว้ เพื่อบอกว่าเป็น "กฎส่วนกลาง"
+    MIN_LIMIT: ClassVar[int] = 0
+    MAX_LIMT: ClassVar[int] = 24
 
     @field_validator('value', mode='before')
     @classmethod
-    def round_up_and_check_range(cls, v:str) -> str:
+    def round_up_and_check_range(cls, v:Any) -> int:
         '''กำหนดชั่วโมงปัดเศษขึ้นและ ไม่น้อยกว่า 0 ไม่เกิน 24'''
         # 1. ลอจิกการปัดเศษ: ใช้สูตรคณิตศาสตร์
-        v = math.ceil(v)
+        try:
+            rounded_v = math.ceil(float(v))
+        except (ValueError, TypeError):
+            raise ValueError('ชั่วโมงจอดรถต้องเป็นตัวเลขครับ')
+        
         # 2. ลอจิกการกำหนดช่วงเวลา
-        if v < 0:
+        if rounded_v < cls.MIN_LIMIT:
             raise ValueError('เวลาจอดติดไม่ได้')
-        if v > 24:
+        if rounded_v > cls.MAX_LIMT:
             raise ValueError('ห้ามจอดเกิน 24 ชั่วโมง')
-        return v
+        return rounded_v
     
 
 class FirstName(BaseModel):
