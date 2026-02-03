@@ -1,6 +1,13 @@
 from pydantic import BaseModel, field_validator, ConfigDict
 import math
 from typing import Any, ClassVar
+import logging
+
+# ต้องรันบรรทัดนี้ "ก่อน" ที่จะมีการเรียกใช้ logging.info/error ครั้งแรกนะครับป๋า
+logging.basicConfig(
+    level=logging.INFO,  # บอกยามว่า "เอาตั้งแต่ระดับ INFO ขึ้นไปนะ"
+    format='%(asctime)s - %(levelname)s - %(message)s' # ปรับหน้าตาให้ดูโปร
+)
 
 
 class ParkingHour(BaseModel):
@@ -10,7 +17,7 @@ class ParkingHour(BaseModel):
 
     # ใส่ ClassVar[ประเภท] คลุมไว้ เพื่อบอกว่าเป็น "กฎส่วนกลาง"
     MIN_LIMIT: ClassVar[int] = 0
-    MAX_LIMT: ClassVar[int] = 24
+    MAX_LIMIT: ClassVar[int] = 24
 
     @field_validator('value', mode='before')
     @classmethod
@@ -19,16 +26,21 @@ class ParkingHour(BaseModel):
         # 1. ลอจิกการปัดเศษ: ใช้สูตรคณิตศาสตร์
         try:
             rounded_v = math.ceil(float(v))
-        except (ValueError, TypeError):
+            # ถ้าผ่าน จด INFO ไว้หน่อยก็ได้ป๋า
+            logging.info(f"รับข้อมูลชั่วโมงจอด: {v} -> ปัดเศษเป็น: {rounded_v}")
+
+        except (ValueError, TypeError) as e:
+            # ถ้าพัง จด ERROR พร้อมหลักฐาน (e) ทันที!
+            logging.error(f"ป๋าครับ! มีคนกรอกของเสียเข้ามา: '{v}' | รายละเอียด: '{e}'")
             raise ValueError('ชั่วโมงจอดรถต้องเป็นตัวเลขครับ')
         
         # 2. ลอจิกการกำหนดช่วงเวลา
-        if rounded_v < cls.MIN_LIMIT:
-            raise ValueError('เวลาจอดติดไม่ได้')
-        if rounded_v > cls.MAX_LIMT:
-            raise ValueError('ห้ามจอดเกิน 24 ชั่วโมง')
+        if rounded_v < cls.MIN_LIMIT or rounded_v > cls.MAX_LIMIT:
+            logging.warning(f"กรอกเลขเกินช่วงที่กำหนด: {rounded_v}")
+            raise ValueError(f'ห้ามจอดน้อยกว่า {cls.MIN_LIMIT} หรือเกิน {cls.MAX_LIMIT} ชม.')
+        
         return rounded_v
-    
+
 
 class FirstName(BaseModel):
     value: str
