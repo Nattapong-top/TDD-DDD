@@ -18,6 +18,7 @@ class ParkingHour(BaseModel):
     # ใส่ ClassVar[ประเภท] คลุมไว้ เพื่อบอกว่าเป็น "กฎส่วนกลาง"
     MIN_LIMIT: ClassVar[int] = 0
     MAX_LIMIT: ClassVar[int] = 24
+    FEE_FREE: ClassVar[float] = 0.25
 
     @field_validator('value', mode='before')
     @classmethod
@@ -25,20 +26,24 @@ class ParkingHour(BaseModel):
         '''กำหนดชั่วโมงปัดเศษขึ้นและ ไม่น้อยกว่า 0 ไม่เกิน 24'''
         # 1. ลอจิกการปัดเศษ: ใช้สูตรคณิตศาสตร์
         try:
-            rounded_v = math.ceil(float(v))
-            # ถ้าผ่าน จด INFO ไว้หน่อยก็ได้ป๋า
-            logging.info(f"รับข้อมูลชั่วโมงจอด: {v} -> ปัดเศษเป็น: {rounded_v}")
-
+            val_float = float(v)
         except (ValueError, TypeError) as e:
             # ถ้าพัง จด ERROR พร้อมหลักฐาน (e) ทันที!
             logging.error(f"ป๋าครับ! มีคนกรอกของเสียเข้ามา: '{v}' | รายละเอียด: '{e}'")
             raise ValueError('ชั่วโมงจอดรถต้องเป็นตัวเลขครับ')
-        
+
         # 2. ลอจิกการกำหนดช่วงเวลา
-        if rounded_v < cls.MIN_LIMIT or rounded_v > cls.MAX_LIMIT:
-            logging.warning(f"กรอกเลขเกินช่วงที่กำหนด: {rounded_v}")
+        if val_float < cls.MIN_LIMIT or val_float > cls.MAX_LIMIT:
+            logging.warning(f"กรอกเลขเกินช่วงที่กำหนด: {val_float}")
             raise ValueError(f'ห้ามจอดน้อยกว่า {cls.MIN_LIMIT} หรือเกิน {cls.MAX_LIMIT} ชม.')
-        
+
+        if val_float <= cls.FEE_FREE :
+            logging.info(f"รับข้อมูลชั่วโมงจอด: {val_float} -> ปัดเศษลงเป็น: {0}")
+            return 0
+            
+        rounded_v = math.ceil(val_float)
+        # ถ้าผ่าน จด INFO ไว้หน่อยก็ได้ป๋า
+        logging.info(f"รับข้อมูลชั่วโมงจอด: {v} -> ปัดเศษเป็น: {rounded_v}")
         return rounded_v
 
 
