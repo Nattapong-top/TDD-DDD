@@ -1,5 +1,7 @@
 from pytest import raises
-from Coffee_Shop.domain.shop_logic import Shop, DrinkNotInMenu
+
+
+from Coffee_Shop.domain.shop_logic import Shop, DrinkNotInMenu,MoneyNotEnough
 from Coffee_Shop.domain.value_object import DrinkName, MoneyTHB
 
 def test_should_return_tea_change_30_when_buying_tea_with_50_baht():
@@ -31,4 +33,9 @@ def test_should_raise_DrinkNotInMenu_when_buying_cocoa():
     with raises(DrinkNotInMenu):
         shop.buy(order, pay)
 
-
+def test_should_raise_MoneyNotEnough_when_buying_coffee_with_1_baht():
+    shop = Shop()
+    order = DrinkName(value='Coffee')
+    pay = MoneyTHB(value=1.0)
+    with raises(MoneyNotEnough):
+        shop.buy(order, pay)
