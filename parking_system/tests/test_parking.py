@@ -1,6 +1,7 @@
 import pytest
+from pydantic import ValidationError
 from parking_system.domain.parking_logic import (
-    ParkingSystem, Car, ParkingFullError)
+    ParkingSystem, Car, ParkingFullError,  )
 
 def test_should_return_parking_spot_when_park_successfully():
     parking = ParkingSystem()
@@ -11,3 +12,7 @@ def test_should_raise_error_when_parking_is_full():
     parking = ParkingSystem()
     with pytest.raises(ParkingFullError):
         parking.park(Car(plate_id='FULL-999'))
+
+def test_should_raise_error_when_plate_id_is_empty():
+    with pytest.raises(ValidationError):
+        Car(plate_id='')

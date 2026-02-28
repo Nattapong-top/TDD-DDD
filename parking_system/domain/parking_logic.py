@@ -1,10 +1,10 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class ParkingFullError(Exception): pass
 
 class Car(BaseModel):
-    plate_id: str
+    plate_id: str = Field(..., min_length=1, max_length=20, description='Plate ID ห้ามว่างครับ')
 
 class ParkingSystem:
     def __init__(self):
