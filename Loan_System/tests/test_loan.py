@@ -81,3 +81,14 @@ def test_should_raise_error_when_employee_borrows_more_than_three_items():
 
     with pytest.raises(LoanLimitExceededError):
         system.borrow(Asset(serial_no='NB-004', model='Dell Latitude'), emp)
+
+def test_should_record_correct_loan_date_from_provider():
+    mock_date = MockDateProvider()
+    mock_date.return_value = '2026-12-25'
+
+    system = LoanSystem(date_provider=mock_date)
+    asset = Asset(serial_no='XMAS-001', model='iPad')
+    emp = Employee(name='ซานต้า', dept='TCD')
+
+    result = system.borrow(asset, emp)
+    assert '2026-12-25' in result

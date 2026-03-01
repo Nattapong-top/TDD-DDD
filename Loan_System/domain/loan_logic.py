@@ -60,5 +60,8 @@ class LoanSystem:
 
 
 class MockDateProvider:
+    def __init__(self):
+        self.return_value = '2026-03-01'
+
     def __call__(self):
-        return '2026-03-01'
+        return self.return_value
