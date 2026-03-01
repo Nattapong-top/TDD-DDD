@@ -92,3 +92,14 @@ def test_should_record_correct_loan_date_from_provider():
 
     result = system.borrow(asset, emp)
     assert '2026-12-25' in result
+
+def test_should_clear_all_active_loans():
+    system = LoanSystem(MockDateProvider())
+
+    emp = Employee(name='ณัฐพงศ์', dept='IT')
+    system.borrow(Asset(serial_no='NB-001', model='Dell Latitude'), emp)
+    system.borrow(Asset(serial_no='NB-002', model='Dell Latitude'), emp)
+    system.borrow(Asset(serial_no='NB-003', model='Dell Latitude'), emp)
+
+    system.clear_all_loans()
+    assert system.get_loan_count() == 0

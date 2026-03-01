@@ -22,7 +22,7 @@ class LoanSystem:
 
     def __init__(self, date_provider):
         self._date_provider = date_provider
-        self._active_loans = {}
+        self._active_loans = {}  #{serial_no: employee_name}
 
     def borrow(self, asset: Asset, emp:Employee) -> str:
         self._validate_asset_availability(asset)
@@ -41,12 +41,14 @@ class LoanSystem:
         del self._active_loans[asset.serial_no]
 
     def get_borrower_name(self, asset: Asset) -> str:
-        if not self._is_borrowed(asset):
-            return 'No one'
-        return self._active_loans[asset.serial_no]
+        return self._active_loans.get(asset.serial_no, 'No one')
+
 
     def get_loan_count(self) -> int:
         return len(self._active_loans)
+
+    def clear_all_loans(self):
+        self._active_loans.clear()
 
     def _validate_asset_availability(self, asset: Asset):
         if self._is_borrowed(asset):
