@@ -12,6 +12,8 @@ class AssetAlreadyBorrowedError(ValueError): pass
 
 class AssetNotBorrowedError(ValueError): pass
 
+class LoanLimitExceededError(ValueError): pass
+
 def _format_loan_message(emp: Employee, asset: Asset, date:str) -> str:
     return f'{emp.name} ({emp.dept}) Borrowed {asset.model} {asset.serial_no} on {date}'
 
@@ -24,19 +26,27 @@ class LoanSystem:
 
     def borrow(self, asset: Asset, emp:Employee) -> str:
         self._validate_asset_availability(asset)
+        self._get_borrowed_count(emp)
         self._active_loans[asset.serial_no] = emp.name
-        loan_date = self._get_current_date()
-        return _format_loan_message(emp, asset, loan_date)
+        return _format_loan_message(emp, asset, self._get_current_date())
 
-    def return_asset(self, asset: Asset):
+    def _get_borrowed_count(self, emp: Employee):
+        borrowed_count = list(self._active_loans.values()).count(emp.name)
+        if borrowed_count >= 3:
+            raise LoanLimitExceededError()
+
+    def return_asset(self, asset: Asset) -> None:
         if not self._is_borrowed(asset):
             raise AssetNotBorrowedError()
         del self._active_loans[asset.serial_no]
 
-    def get_borrower_name(self, asset: Asset):
+    def get_borrower_name(self, asset: Asset) -> str:
         if not self._is_borrowed(asset):
             return 'No one'
         return self._active_loans[asset.serial_no]
+
+    def get_loan_count(self) -> int:
+        return len(self._active_loans)
 
     def _validate_asset_availability(self, asset: Asset):
         if self._is_borrowed(asset):
@@ -45,7 +55,7 @@ class LoanSystem:
     def _is_borrowed(self, asset: Asset) -> bool:
         return asset.serial_no in self._active_loans
 
-    def _get_current_date(self):
+    def _get_current_date(self) -> str:
         return self._date_provider()
 
 

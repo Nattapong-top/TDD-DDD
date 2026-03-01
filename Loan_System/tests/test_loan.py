@@ -2,7 +2,8 @@ import pytest
 from pydantic import ValidationError
 
 from Loan_System.domain.loan_logic import (
-    LoanSystem, Employee, Asset, MockDateProvider, AssetAlreadyBorrowedError, AssetNotBorrowedError)
+    LoanSystem, Employee, Asset, MockDateProvider, AssetAlreadyBorrowedError,
+    AssetNotBorrowedError, LoanLimitExceededError)
 
 def test_should_return_success_message_when_loan_successfully():
     mock_date = MockDateProvider()
@@ -62,3 +63,21 @@ def test_should_return_employee_name_who_borrowed_the_asset():
 
     borrower = system.get_borrower_name(asset)
     assert borrower == emp.name
+
+def test_should_return_correct_count_of_active_loans():
+    system = LoanSystem(MockDateProvider())
+    system.borrow(Asset(serial_no='NB-001', model='Dell Latitude'), Employee(name='ณัฐพงศ์', dept='IT'))
+    system.borrow(Asset(serial_no='NB-002', model='MacBook'), Employee(name='นามสมมุติ', dept='OP'))
+
+    assert system.get_loan_count() == 2
+
+def test_should_raise_error_when_employee_borrows_more_than_three_items():
+    system = LoanSystem(MockDateProvider())
+    emp = Employee(name='ณัฐพงศ์', dept='IT')
+
+    system.borrow(Asset(serial_no='NB-001', model='Dell Latitude'), emp)
+    system.borrow(Asset(serial_no='NB-002', model='Dell Latitude'), emp)
+    system.borrow(Asset(serial_no='NB-003', model='Dell Latitude'), emp)
+
+    with pytest.raises(LoanLimitExceededError):
+        system.borrow(Asset(serial_no='NB-004', model='Dell Latitude'), emp)
