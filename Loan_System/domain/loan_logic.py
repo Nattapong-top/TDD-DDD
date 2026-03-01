@@ -1,12 +1,12 @@
 from pydantic import BaseModel, Field
 
 class Employee(BaseModel):
-    name: str
+    name: str = Field(..., min_length=1, max_length=50, description='Employee name ห้ามว่าง' )
     dept: str
 
 class Asset(BaseModel):
-    serial_no: str
-    model: str
+    serial_no: str = Field(..., min_length=1, max_length=20, description='Asset Serial No ห้ามว่าง')
+    model: str = Field(..., min_length=1, max_length=20, description='Asset Model ห้ามว่าง')
 
 class AssetAlreadyBorrowedError(ValueError): pass
 

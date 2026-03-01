@@ -1,4 +1,6 @@
 import pytest
+from pydantic import ValidationError
+
 from Loan_System.domain.loan_logic import (
     LoanSystem, Employee, Asset, MockDateProvider, AssetAlreadyBorrowedError)
 
@@ -22,5 +24,15 @@ def test_should_raise_error_when_borrowing_already_loaned_asset():
 
     with pytest.raises(AssetAlreadyBorrowedError):
         system.borrow(asset, emp2)
+
+def test_should_raise_error_when_employee_name_is_empty():
+    with pytest.raises(ValidationError):
+        Employee(name='', dept='IT')
+
+def test_should_raise_error_when_asset_is_empty():
+    with pytest.raises(ValidationError):
+        Asset(serial_no='', model='Dell Latitude')
+
+
 
 
