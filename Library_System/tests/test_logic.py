@@ -1,6 +1,7 @@
 # Unit Tests for Library_System
 import pytest
-from Library_System.domain.domain_logic import LibrarySystem, Book, Member, BookAlreadyBorrowedBook
+from Library_System.domain.domain_logic import LibrarySystem, Book, Member, BookAlreadyBorrowedBook, \
+    BookNotBorrowedError
 
 
 def test_should_return_success_message_when_borrow_successfully():
@@ -32,6 +33,7 @@ def test_should_allow_borrowing_different_copies_of_the_same_book():
     system.borrow(copy2, member2)
     assert system.get_borrowed_count() == 2
 
+
 def test_should_allow_returning_book_successfully():
     system = LibrarySystem()
     book = Book(isbn='978-1', title='Clean Architecture', barcode='BC-001')
@@ -41,3 +43,10 @@ def test_should_allow_returning_book_successfully():
     assert title == 'Clean Architecture'
     assert name == 'nattapong'
     assert system.get_borrowed_count() == 0
+
+
+def test_should_raise_error_when_returning_book_that_was_not_borrowed():
+    system = LibrarySystem()
+    book = Book(isbn='978-1', title='Clean Architecture', barcode='BC-001')
+    with pytest.raises(BookNotBorrowedError):
+        system.return_book(book)
