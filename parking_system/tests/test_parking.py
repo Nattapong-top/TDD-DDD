@@ -1,18 +1,37 @@
 import pytest
 from pydantic import ValidationError
 from parking_system.domain.parking_logic import (
-    ParkingSystem, Car, ParkingFullError,  )
+    ParkingSystem, Car, ParkingFullError, MockSelector,
+    AlreadyParkedError)
 
 def test_should_return_parking_spot_when_park_successfully():
-    parking = ParkingSystem()
+    mock_selector = MockSelector()
+    parking = ParkingSystem(selector=mock_selector)
     result = parking.park(car_id=Car(plate_id='ABC-123'))
-    assert result == 'Car ABC-123 parked at Spot 1'
+    assert 'ABC-123' in result
+    assert 'Spot 99' in result
 
 def test_should_raise_error_when_parking_is_full():
-    parking = ParkingSystem()
+    mock_selector = MockSelector()
+    parking = ParkingSystem(selector=mock_selector)
     with pytest.raises(ParkingFullError):
         parking.park(Car(plate_id='FULL-999'))
 
 def test_should_raise_error_when_plate_id_is_empty():
     with pytest.raises(ValidationError):
         Car(plate_id='')
+
+def test_should_use_selector_to_choose_spot():
+    mock_selector = MockSelector()
+    parking = ParkingSystem(selector=mock_selector)
+    result = parking.park(Car(plate_id='XYZ-789'))
+    assert 'Spot 99' in result
+
+def test_should_raise_error_when_parking_duplicate_car():
+    mock_selector = MockSelector()
+    parking = ParkingSystem(selector=mock_selector)
+    car = Car(plate_id='XYZ-789')
+
+    parking.park(car)
+    with pytest.raises(AlreadyParkedError):
+        parking.park(car)
