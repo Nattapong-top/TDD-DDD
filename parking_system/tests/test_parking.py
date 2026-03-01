@@ -35,3 +35,29 @@ def test_should_raise_error_when_parking_duplicate_car():
     parking.park(car)
     with pytest.raises(AlreadyParkedError):
         parking.park(car)
+
+def test_should_allow_car_to_park_again_after_leaving():
+    mock_selector = MockSelector()
+    parking = ParkingSystem(selector=mock_selector)
+    car = Car(plate_id='EXIT-555')
+
+    parking.leave(car)
+
+    result = parking.park(car)
+    assert 'EXIT-555' in result
+
+def test_should_return_true_if_car_is_already_parked():
+    mock_selector = MockSelector()
+    parking = ParkingSystem(mock_selector)
+    car = Car(plate_id='CHECK-123')
+
+    assert parking.is_parked(car) is False
+    parking.park(car)
+    assert parking.is_parked(car) is True
+
+def test_should_return_correct_count_of_parked_cars():
+    parking = ParkingSystem(selector=MockSelector())
+    parking.park(Car(plate_id='ABC-123'))
+    parking.park(Car(plate_id='XYZ-789'))
+
+    assert parking.get_parked_count() == 2
