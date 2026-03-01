@@ -2,7 +2,7 @@ import pytest
 from pydantic import ValidationError
 
 from Loan_System.domain.loan_logic import (
-    LoanSystem, Employee, Asset, MockDateProvider, AssetAlreadyBorrowedError)
+    LoanSystem, Employee, Asset, MockDateProvider, AssetAlreadyBorrowedError, AssetNotBorrowedError)
 
 def test_should_return_success_message_when_loan_successfully():
     mock_date = MockDateProvider()
@@ -44,4 +44,12 @@ def test_should_allow_return_asset_successfully():
 
     result = system.borrow(asset, emp)
     assert 'Borrowed' in result
+
+def test_should_raise_error_when_returning_asset_that_was_not_borrowed():
+    mock_date = MockDateProvider()
+    system = LoanSystem(date_provider=mock_date)
+    asset = Asset(serial_no='Ghost-000', model='No Brand')
+
+    with pytest.raises(AssetNotBorrowedError):
+        system.return_asset(asset)
 
