@@ -11,7 +11,7 @@ class Asset(BaseModel):
 class AssetAlreadyBorrowedError(ValueError): pass
 
 def _format_loan_message(emp: Employee, asset: Asset, date:str) -> str:
-    return f'{emp.name} ({emp.dept}) borrowed {asset.model} {asset.serial_no} on {date}'
+    return f'{emp.name} ({emp.dept}) Borrowed {asset.model} {asset.serial_no} on {date}'
 
 
 class LoanSystem:
@@ -27,6 +27,9 @@ class LoanSystem:
 
         loan_date = self._get_current_date()
         return _format_loan_message(emp, asset, loan_date)
+
+    def return_asset(self, asset: Asset):
+        self._active_loans.pop(asset.serial_no, None)
 
     def _validate_asset_availability(self, asset: Asset):
         if asset.serial_no in self._active_loans:
