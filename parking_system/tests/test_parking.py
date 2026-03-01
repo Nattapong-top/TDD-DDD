@@ -2,7 +2,7 @@ import pytest
 from pydantic import ValidationError
 from parking_system.domain.parking_logic import (
     ParkingSystem, Car, ParkingFullError, MockSelector,
-    AlreadyParkedError)
+    AlreadyParkedError, CarNotParkedError)
 
 def test_should_return_parking_spot_when_park_successfully():
     mock_selector = MockSelector()
@@ -40,6 +40,7 @@ def test_should_allow_car_to_park_again_after_leaving():
     mock_selector = MockSelector()
     parking = ParkingSystem(selector=mock_selector)
     car = Car(plate_id='EXIT-555')
+    parking.park(car)
 
     parking.leave(car)
 
@@ -61,3 +62,19 @@ def test_should_return_correct_count_of_parked_cars():
     parking.park(Car(plate_id='XYZ-789'))
 
     assert parking.get_parked_count() == 2
+
+def test_should_raise_error_when_leaving_with_car_not_in_system():
+    parking = ParkingSystem(selector=MockSelector())
+    car = Car(plate_id='GHOST-999')
+
+    with pytest.raises(CarNotParkedError):
+        parking.leave(car)
+
+def test_should_clear_all_parked_cars():
+    parking = ParkingSystem(selector=MockSelector())
+    parking.park(Car(plate_id='ABC-123'))
+    parking.park(Car(plate_id='XYZ-789'))
+
+    parking.clear_all()
+
+    assert parking.get_parked_count() == 0
