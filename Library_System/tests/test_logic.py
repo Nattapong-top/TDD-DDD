@@ -31,3 +31,13 @@ def test_should_allow_borrowing_different_copies_of_the_same_book():
     system.borrow(copy1, member)
     system.borrow(copy2, member2)
     assert system.get_borrowed_count() == 2
+
+def test_should_allow_returning_book_successfully():
+    system = LibrarySystem()
+    book = Book(isbn='978-1', title='Clean Architecture', barcode='BC-001')
+    member = Member(name='nattapong')
+    system.borrow(book, member)
+    title, name = system.return_book(book)
+    assert title == 'Clean Architecture'
+    assert name == 'nattapong'
+    assert system.get_borrowed_count() == 0

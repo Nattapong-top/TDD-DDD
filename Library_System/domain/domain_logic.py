@@ -25,6 +25,10 @@ class LibrarySystem:
         self._borrowed_books[book.barcode] = member.name
         return book.title, member.name
 
+    def return_book(self, book: Book):
+        member_name = self._borrowed_books.pop(book.barcode)
+        return book.title, member_name
+
     def _validate_book(self, book: Book):
         if book.barcode in self._borrowed_books:
             raise BookAlreadyBorrowedBook
