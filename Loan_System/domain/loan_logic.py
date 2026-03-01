@@ -33,6 +33,11 @@ class LoanSystem:
             raise AssetNotBorrowedError()
         del self._active_loans[asset.serial_no]
 
+    def get_borrower_name(self, asset: Asset):
+        if not self._is_borrowed(asset):
+            return 'No one'
+        return self._active_loans[asset.serial_no]
+
     def _validate_asset_availability(self, asset: Asset):
         if self._is_borrowed(asset):
             raise AssetAlreadyBorrowedError()

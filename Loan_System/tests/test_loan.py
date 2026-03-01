@@ -53,3 +53,12 @@ def test_should_raise_error_when_returning_asset_that_was_not_borrowed():
     with pytest.raises(AssetNotBorrowedError):
         system.return_asset(asset)
 
+
+def test_should_return_employee_name_who_borrowed_the_asset():
+    system = LoanSystem(MockDateProvider())
+    asset = Asset(serial_no='NB-002', model='Macbook')
+    emp = Employee(name='ณัฐพงศ์', dept='IT')
+    system.borrow(asset, emp)
+
+    borrower = system.get_borrower_name(asset)
+    assert borrower == emp.name
