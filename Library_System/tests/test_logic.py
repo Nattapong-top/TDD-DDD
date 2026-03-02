@@ -1,4 +1,5 @@
 # Unit Tests for Library_System
+from datetime import date
 import pytest
 from Library_System.domain.domain_logic import LibrarySystem, Book, Member, BookAlreadyBorrowedBook, \
     BookNotBorrowedError
@@ -39,7 +40,8 @@ def test_should_allow_returning_book_successfully():
     book = Book(isbn='978-1', title='Clean Architecture', barcode='BC-001')
     member = Member(name='nattapong')
     system.borrow(book, member)
-    title, name = system.return_book(book)
+    return_date = date(2026, 3, 5)
+    title, name, fine = system.return_book(book, return_date=return_date)
     assert title == 'Clean Architecture'
     assert name == 'nattapong'
     assert system.get_borrowed_count() == 0
@@ -48,5 +50,18 @@ def test_should_allow_returning_book_successfully():
 def test_should_raise_error_when_returning_book_that_was_not_borrowed():
     system = LibrarySystem()
     book = Book(isbn='978-1', title='Clean Architecture', barcode='BC-001')
+    return_date = date(2026, 3, 5)
     with pytest.raises(BookNotBorrowedError):
-        system.return_book(book)
+        system.return_book(book, return_date=return_date)
+
+
+def test_should_calculate_fine_correctly_when_returning_late():
+    system = LibrarySystem()
+    member = Member(name='nattapong')
+    book = Book(isbn='978-1', title='Clean Architecture', barcode='BC-001')
+    borrow_date = date(2026, 3, 1)
+    system.borrow(book, member, borrow_date=borrow_date)
+    return_date = date(2026, 3, 5)
+    title, name, fine = system.return_book(book, return_date=return_date)
+    assert fine == 10
+
