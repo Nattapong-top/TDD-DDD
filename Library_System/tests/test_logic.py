@@ -80,5 +80,17 @@ def test_should_not_charge_fine_when_returning_before_due_date():
     book = Book(isbn='978-1', title='Clean Architecture', barcode='BC-001')
     system.borrow(book, member, borrow_date=date(2026, 3, 1))
     _, _, fine = system.return_book(book, return_date=date(2026, 3, 4))
-
     assert fine == 0
+
+def test_should_get_borrower_name_from_barcode():
+    system = LibrarySystem()
+    book = Book(isbn='978-1', title='Clean Architecture', barcode='BC-001')
+    member = Member(name='nattapong')
+    system.borrow(book, member)
+    borrow_name = system.get_borrower(barcode='BC-001')
+    assert borrow_name == 'nattapong'
+
+def test_should_return_none_when_book_is_not_borrowed():
+    system = LibrarySystem()
+    borrow_name = system.get_borrower(barcode='NOT-EXIST')
+    assert borrow_name is None

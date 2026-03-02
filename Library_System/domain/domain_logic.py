@@ -67,3 +67,8 @@ class LibrarySystem:
 
     def get_borrowed_count(self) -> int:
         return len(self._borrowed_books)
+
+    def get_borrower(self, barcode: str) -> str | None:
+        loan = self._borrowed_books.get(barcode)
+        return loan.member_name if loan else None
+
