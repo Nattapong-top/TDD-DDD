@@ -65,3 +65,20 @@ def test_should_calculate_fine_correctly_when_returning_late():
     title, name, fine = system.return_book(book, return_date=return_date)
     assert fine == 10
 
+def test_should_not_charge_fine_when_returning_exactly_on_due_date():
+    system = LibrarySystem()
+    member = Member(name='nattapong')
+    book = Book(isbn='978-1', title='Clean Architecture', barcode='BC-001')
+
+    system.borrow(book, member, borrow_date=date(2026, 3, 1))
+    _, _, fine = system.return_book(book, return_date=date(2026, 3, 1))
+    assert fine == 0
+
+def test_should_not_charge_fine_when_returning_before_due_date():
+    system = LibrarySystem()
+    member = Member(name='nattapong')
+    book = Book(isbn='978-1', title='Clean Architecture', barcode='BC-001')
+    system.borrow(book, member, borrow_date=date(2026, 3, 1))
+    _, _, fine = system.return_book(book, return_date=date(2026, 3, 4))
+
+    assert fine == 0

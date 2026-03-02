@@ -48,11 +48,15 @@ class LibrarySystem:
         return book.title, loan.member_name, fine
 
     def _calculate_fine(self, borrow_date: date, return_date: date) -> int:
-        due_date = borrow_date + timedelta(days=self._loan_duration_days)
+        due_date = self._get_due_date(borrow_date)
         # ลอง print ออกมาดูในขณะรันเทสก็ได้ครับป๋า
         # print(f"DEBUG: Due was {due_date}, Return was {return_date}")
         days_late = (return_date - due_date).days
         return max(0, days_late * self._fine_per_day)
+
+    def _get_due_date(self, borrow_date: date) -> date:
+        due_date = borrow_date + timedelta(days=self._loan_duration_days)
+        return due_date
 
     def is_borrowed(self, book: Book) -> bool:
         return book.barcode in self._borrowed_books
