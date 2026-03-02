@@ -94,3 +94,14 @@ def test_should_return_none_when_book_is_not_borrowed():
     system = LibrarySystem()
     borrow_name = system.get_borrower(barcode='NOT-EXIST')
     assert borrow_name is None
+
+def test_clear_all_borrowed_records():
+    system = LibrarySystem()
+    member = Member(name='nattapong')
+    book1 = Book(isbn='978-1', title='Clean Architecture', barcode='BC-001')
+    book2 = Book(isbn='978-1', title='Clean Architecture', barcode='BC-002')
+    system.borrow(book1, member)
+    system.borrow(book2, member)
+    assert system.get_borrowed_count() == 2
+    system.clear_all()
+    assert system.get_borrowed_count() == 0

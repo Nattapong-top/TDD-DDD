@@ -72,3 +72,6 @@ class LibrarySystem:
         loan = self._borrowed_books.get(barcode)
         return loan.member_name if loan else None
 
+    def clear_all(self) -> None:
+        self._borrowed_books.clear()
+
