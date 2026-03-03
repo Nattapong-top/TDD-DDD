@@ -12,3 +12,7 @@ class ElectricityRate(BaseModel):
     class Config:
         frozen = True
 
+class WaterUnit(BaseModel):
+    value: float = Field(..., gt=0)
+    class Config:
+        frozen = True
