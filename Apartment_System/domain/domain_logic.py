@@ -1,9 +1,8 @@
 # Domain Logic for Apartment_System
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 class DomainValueObject(BaseModel):
-    class Config:
-        frozen = True
+    model_config = ConfigDict(frozen=True)
 
 class PositiveValue(DomainValueObject):  # ← extract ตรงนี้
     value: float = Field(..., gt=0)
@@ -34,3 +33,8 @@ def calculate_total_bill(electricity_bill: MoneyTHB, water_bill: MoneyTHB, room_
 
 class Room(DomainValueObject):
     room_number: str = Field(..., min_length=1, max_length=20)
+    status: str = Field(..., min_length=1, max_length=20)
+
+class Tenant(DomainValueObject):
+    name: str = Field(..., min_length=1, max_length=20)
+

@@ -7,7 +7,7 @@ from Apartment_System.domain.domain_logic import (
     MoneyTHB, calculate_electricity_bill, calculate_water_bill,
     calculate_total_bill)
 
-from Apartment_System.domain.domain_logic import Room
+from Apartment_System.domain.domain_logic import Room, Tenant
 
 def test_should_create_electricity_unit_with_valid_value() -> None:
     valid_unit = 100.0
@@ -85,3 +85,17 @@ def test_should_create_room_with_valid_value() -> None:
 def test_should_raise_error_when_room_number_is_empty() -> None:
     with raises(ValidationError):
         room = Room(room_number='')
+
+def test_should_tenant_with_valid_name() -> None:
+    tenant = Tenant(name='nattapong')
+    assert tenant.name == 'nattapong'
+
+def test_should_raise_error_when_tenant_name_is_empty() -> None:
+    with raises(ValidationError):
+        tenant = Tenant(name='')
+
+def test_should_raise_error_when_tenant_name_is_too_long() -> None:
+    with raises(ValidationError):
+        Tenant(name='a' * 21)
+
+
