@@ -4,7 +4,7 @@ from pydantic import ValidationError
 
 from Apartment_System.domain.domain_logic import (
     ElectricityUnit, ElectricityRate, WaterUnit, WaterRate,
-    MoneyTHB, calculate_electricity_bill)
+    MoneyTHB, calculate_electricity_bill, calculate_water_bill)
 
 
 def test_should_create_electricity_unit_with_valid_value() -> None:
@@ -58,3 +58,8 @@ def test_should_calculate_electricity_bill() -> None:
     bill = calculate_electricity_bill(unit=unit, rate=rate)
     assert bill.amount == 800.0
 
+def test_should_calculate_water_bill() -> None:
+    unit = WaterUnit(value=10.0)
+    rate = WaterRate(value=19.0)
+    bill = calculate_water_bill(unit=unit, rate=rate)
+    assert bill.amount == 190.0
