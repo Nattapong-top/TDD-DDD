@@ -3,7 +3,6 @@ from pydantic import BaseModel, Field
 
 class ElectricityUnit(BaseModel):
     value: float = Field(..., gt=0)
-
     class Config:
         frozen = True
 
@@ -13,6 +12,11 @@ class ElectricityRate(BaseModel):
         frozen = True
 
 class WaterUnit(BaseModel):
+    value: float = Field(..., gt=0)
+    class Config:
+        frozen = True
+
+class WaterRate(BaseModel):
     value: float = Field(..., gt=0)
     class Config:
         frozen = True
