@@ -17,9 +17,17 @@ class MoneyTHB(DomainValueObject):
     amount: float = Field(..., gt=0)
 
 def calculate_electricity_bill(unit: ElectricityUnit, rate: ElectricityRate) -> MoneyTHB:
+    return calculate_bill(unit, rate)
+
+def calculate_water_bill(unit: WaterUnit, rate: WaterRate) -> MoneyTHB:
+    return calculate_bill(unit, rate)
+
+
+def calculate_bill(rate: PositiveValue, unit: PositiveValue) -> MoneyTHB:
     total = unit.value * rate.value
     return MoneyTHB(amount=total)
 
-def calculate_water_bill(unit: WaterUnit, rate: WaterRate) -> MoneyTHB:
-    total = unit.value * rate.value
+
+def calculate_total_bill(electricity_bill: MoneyTHB, water_bill: MoneyTHB, room_rent: MoneyTHB) -> MoneyTHB:
+    total = electricity_bill.amount + water_bill.amount + room_rent.amount
     return MoneyTHB(amount=total)
