@@ -1,22 +1,18 @@
 # Domain Logic for Apartment_System
 from pydantic import BaseModel, Field
 
-class ElectricityUnit(BaseModel):
-    value: float = Field(..., gt=0)
+class DomainValueObject(BaseModel):
     class Config:
         frozen = True
 
-class ElectricityRate(BaseModel):
+class ElectricityUnit(DomainValueObject):
     value: float = Field(..., gt=0)
-    class Config:
-        frozen = True
 
-class WaterUnit(BaseModel):
+class ElectricityRate(DomainValueObject):
     value: float = Field(..., gt=0)
-    class Config:
-        frozen = True
 
-class WaterRate(BaseModel):
+class WaterUnit(DomainValueObject):
     value: float = Field(..., gt=0)
-    class Config:
-        frozen = True
+
+class WaterRate(DomainValueObject):
+    value: float = Field(..., gt=0)
