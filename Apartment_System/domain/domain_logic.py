@@ -31,3 +31,6 @@ def calculate_bill(rate: PositiveValue, unit: PositiveValue) -> MoneyTHB:
 def calculate_total_bill(electricity_bill: MoneyTHB, water_bill: MoneyTHB, room_rent: MoneyTHB) -> MoneyTHB:
     total = electricity_bill.amount + water_bill.amount + room_rent.amount
     return MoneyTHB(amount=total)
+
+class Room(DomainValueObject):
+    room_number: str = Field(..., min_length=1, max_length=20)
