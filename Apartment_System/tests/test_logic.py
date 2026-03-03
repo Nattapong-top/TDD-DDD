@@ -3,7 +3,8 @@ from pytest import raises
 from pydantic import ValidationError
 
 from Apartment_System.domain.domain_logic import (
-    ElectricityUnit, ElectricityRate, WaterUnit, WaterRate)
+    ElectricityUnit, ElectricityRate, WaterUnit, WaterRate,
+    MoneyTHB)
 
 
 def test_should_create_electricity_unit_with_valid_value() -> None:
@@ -45,3 +46,8 @@ def test_should_raise_error_when_water_rate_is_negative() -> None:
     rate = -10.0
     with raises(ValidationError):
         WaterRate(value=rate)
+
+def test_should_create_MoneyTHB_with_valid_amount() -> None:
+    amount = 100.0
+    money = MoneyTHB(amount=amount)
+    assert money.amount == amount

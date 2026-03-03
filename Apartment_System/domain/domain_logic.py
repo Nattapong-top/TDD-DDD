@@ -5,14 +5,13 @@ class DomainValueObject(BaseModel):
     class Config:
         frozen = True
 
-class ElectricityUnit(DomainValueObject):
+class PositiveValue(DomainValueObject):  # ← extract ตรงนี้
     value: float = Field(..., gt=0)
 
-class ElectricityRate(DomainValueObject):
-    value: float = Field(..., gt=0)
+class ElectricityUnit(PositiveValue): pass
+class ElectricityRate(PositiveValue): pass
+class WaterUnit(PositiveValue): pass
+class WaterRate(PositiveValue): pass
 
-class WaterUnit(DomainValueObject):
-    value: float = Field(..., gt=0)
-
-class WaterRate(DomainValueObject):
-    value: float = Field(..., gt=0)
+class MoneyTHB(DomainValueObject):
+    amount: float = Field(..., gt=0)
