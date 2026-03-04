@@ -1,6 +1,8 @@
 # Domain Logic for Apartment_System
 from pydantic import BaseModel, Field, ConfigDict
 from enum import Enum
+from typing import Optional
+
 
 class DomainValueObject(BaseModel):
     model_config = ConfigDict(frozen=True)
@@ -19,6 +21,9 @@ class MoneyTHB(DomainValueObject):
 class RoomStatus(Enum):
     VACANT = 'vacant'
     OCCUPIED = 'occupied'
+
+class Tenant(DomainValueObject):
+    name: str = Field(..., min_length=1, max_length=20)
 
 def calculate_electricity_bill(unit: ElectricityUnit, rate: ElectricityRate) -> MoneyTHB:
     return calculate_bill(unit, rate)
@@ -39,7 +44,5 @@ def calculate_total_bill(electricity_bill: MoneyTHB, water_bill: MoneyTHB, room_
 class Room(DomainValueObject):
     room_number: str = Field(..., min_length=1, max_length=20)
     status: RoomStatus
-
-class Tenant(DomainValueObject):
-    name: str = Field(..., min_length=1, max_length=20)
+    tenant: Optional[Tenant] = None
 

@@ -106,4 +106,17 @@ def test_should_raise_error_when_room_status_is_invalid() -> None:
     with raises(ValidationError):
         room = Room(room_number='101', status='hello')
 
+def test_should_assign_tenant_to_room() -> None:
+    tenant = Tenant(name='nattapong')
+    room = Room(room_number='101', status=RoomStatus.OCCUPIED, tenant=tenant)
+    assert room.tenant == tenant
+
+def test_should_create_vacant_room_without_tenant() -> None:
+    room = Room(room_number='101', status=RoomStatus.VACANT)
+    assert room.tenant == None
+
+def test_should_assign_tenant_to_room() -> None:
+    tenant = Tenant(name='nattapong')
+    room = Room(room_number='101', tenant=tenant, status=RoomStatus.OCCUPIED)
+    assert room.tenant == tenant
 
