@@ -120,3 +120,13 @@ def test_should_assign_tenant_to_room() -> None:
     room = Room(room_number='101', tenant=tenant, status=RoomStatus.OCCUPIED)
     assert room.tenant == tenant
 
+def test_should_calculate_room_monthly_bill() -> None:
+    room = Room(room_number='101', status=RoomStatus.OCCUPIED)
+    bill = room.calculate_monthly_bill(
+        electricity_unit=ElectricityUnit(value=100.0),
+        electricity_rate=ElectricityRate(value=8.0),
+        water_unit=WaterUnit(value=10.0),
+        water_rate=WaterRate(value=19.0),
+        room_rent=MoneyTHB(amount=5000.0),
+    )
+    assert bill.amount == 5990.0
