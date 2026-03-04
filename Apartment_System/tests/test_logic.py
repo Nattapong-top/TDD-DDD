@@ -5,7 +5,7 @@ from pydantic import ValidationError
 from Apartment_System.domain.domain_logic import (
     ElectricityUnit, ElectricityRate, WaterUnit, WaterRate,
     MoneyTHB, calculate_electricity_bill, calculate_water_bill,
-    calculate_total_bill)
+    calculate_total_bill, RoomStatus)
 
 from Apartment_System.domain.domain_logic import Room, Tenant
 
@@ -79,7 +79,7 @@ def test_should_calculate_total_bill() -> None:
     assert total.amount == 5990.0
 
 def test_should_create_room_with_valid_value() -> None:
-    room = Room(room_number='101')
+    room = Room(room_number='101', status=RoomStatus(value='vacant'))
     assert room.room_number == '101'
 
 def test_should_raise_error_when_room_number_is_empty() -> None:
@@ -97,5 +97,13 @@ def test_should_raise_error_when_tenant_name_is_empty() -> None:
 def test_should_raise_error_when_tenant_name_is_too_long() -> None:
     with raises(ValidationError):
         Tenant(name='a' * 21)
+
+def test_should_create_room_with_status_vacant() -> None:
+    room = Room(room_number='101', status=RoomStatus(value='vacant'))
+    assert room.status.value == 'vacant'
+
+def test_should_raise_error_when_room_status_is_invalid() -> None:
+    with raises(ValidationError):
+        room = Room(room_number='101', status='hello')
 
 
