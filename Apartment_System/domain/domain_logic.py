@@ -45,6 +45,7 @@ class Room(DomainValueObject):
     room_number: str = Field(..., min_length=1, max_length=20)
     status: RoomStatus
     tenant: Optional[Tenant] = None
+    room_rent: Optional[MoneyTHB] = None
 
     def calculate_monthly_bill(
             self,
@@ -52,11 +53,10 @@ class Room(DomainValueObject):
             electricity_rate: ElectricityRate,
             water_unit: WaterUnit,
             water_rate: WaterRate,
-            room_rent: MoneyTHB,
 
     ) -> MoneyTHB:
         electricity_bill = calculate_electricity_bill(electricity_unit, electricity_rate)
         water_bill = calculate_water_bill(water_unit, water_rate)
-        total = calculate_total_bill(electricity_bill, water_bill, room_rent)
+        total = calculate_total_bill(electricity_bill, water_bill, self.room_rent)
         return total
 
