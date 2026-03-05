@@ -161,3 +161,9 @@ def test_should_assign_tenant_to_room() -> None:
     assert new_room.status == RoomStatus.OCCUPIED
 
 
+def test_should_remove_tenant_from_room() -> None:
+    tenant = Tenant(name='nattapong')
+    room = Room(room_number='101', tenant=tenant, status=RoomStatus.OCCUPIED)
+    remove_tenant = room.remove_tenant()
+    assert remove_tenant.tenant is None
+    assert remove_tenant.status == RoomStatus.VACANT

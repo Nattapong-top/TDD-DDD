@@ -71,3 +71,10 @@ class Room(DomainValueObject):
             'status': RoomStatus.OCCUPIED,
         })
         return new_room
+
+    def remove_tenant(self) -> 'Room':
+        remove_tenant = self.model_copy(update={
+            'tenant': None,
+            'status': RoomStatus.VACANT,
+        })
+        return remove_tenant
