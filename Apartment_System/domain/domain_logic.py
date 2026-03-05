@@ -10,13 +10,19 @@ class DomainValueObject(BaseModel):
 class PositiveValue(DomainValueObject):  # ← extract ตรงนี้
     value: float = Field(..., gt=0)
 
+class MoneyTHB(DomainValueObject):
+    amount: float = Field(..., gt=0)
+
 class ElectricityUnit(PositiveValue): pass
 class ElectricityRate(PositiveValue): pass
 class WaterUnit(PositiveValue): pass
 class WaterRate(PositiveValue): pass
 
-class MoneyTHB(DomainValueObject):
-    amount: float = Field(..., gt=0)
+class DomainConfig(DomainValueObject):
+    room_rent: MoneyTHB
+    electricity_rate: ElectricityRate
+    water_rate: WaterRate
+
 
 class RoomStatus(Enum):
     VACANT = 'vacant'
@@ -32,7 +38,7 @@ def calculate_water_bill(unit: WaterUnit, rate: WaterRate) -> MoneyTHB:
     return calculate_bill(unit, rate)
 
 
-def calculate_bill(rate: PositiveValue, unit: PositiveValue) -> MoneyTHB:
+def calculate_bill(unit: PositiveValue, rate: PositiveValue) -> MoneyTHB:
     total = unit.value * rate.value
     return MoneyTHB(amount=total)
 
@@ -50,13 +56,12 @@ class Room(DomainValueObject):
     def calculate_monthly_bill(
             self,
             electricity_unit: ElectricityUnit,
-            electricity_rate: ElectricityRate,
             water_unit: WaterUnit,
-            water_rate: WaterRate,
+            config: DomainConfig,
 
     ) -> MoneyTHB:
-        electricity_bill = calculate_electricity_bill(electricity_unit, electricity_rate)
-        water_bill = calculate_water_bill(water_unit, water_rate)
+        electricity_bill = calculate_electricity_bill(electricity_unit, config.electricity_rate)
+        water_bill = calculate_water_bill(water_unit, config.water_rate)
         total = calculate_total_bill(electricity_bill, water_bill, self.room_rent)
         return total
 
