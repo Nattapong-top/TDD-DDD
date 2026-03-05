@@ -65,3 +65,9 @@ class Room(DomainValueObject):
         total = calculate_total_bill(electricity_bill, water_bill, self.room_rent)
         return total
 
+    def assign_tenant(self, tenant: Tenant) -> 'Room':
+        new_room = self.model_copy(update={
+            'tenant': tenant,
+            'status': RoomStatus.OCCUPIED,
+        })
+        return new_room

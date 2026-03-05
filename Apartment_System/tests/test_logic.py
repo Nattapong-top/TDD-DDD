@@ -150,3 +150,14 @@ def test_should_create_domain_config_with_valid_value() -> None:
     assert config.room_rent.amount == 5000.0
     assert config.electricity_rate.value == 8.0
     assert config.water_rate.value == 19.0
+
+def test_should_assign_tenant_to_room() -> None:
+    tenant = Tenant(name='nattapong')
+    room = Room(room_number='101', tenant=tenant, status=RoomStatus.VACANT)
+
+    new_room = room.assign_tenant(tenant)
+
+    assert new_room.tenant == tenant
+    assert new_room.status == RoomStatus.OCCUPIED
+
+
