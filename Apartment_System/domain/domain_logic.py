@@ -20,6 +20,7 @@ class WaterRate(PositiveValue): pass
 
 class TenantNameEmptyError(Exception): pass
 class TenantNameTooLongError(Exception): pass
+class RoomAlreadyOccupiedError(Exception): pass
 
 class DomainConfig(DomainValueObject):
     room_rent: MoneyTHB
@@ -39,9 +40,9 @@ class Tenant(DomainValueObject):
     def validate_name(cls, value):
         name = value.get('name', '')
         if len(name) > 20:
-            raise TenantNameTooLongError
+            raise TenantNameTooLongError('ชื่อยาวเกินไป')
         if len(name) == 0:
-            raise TenantNameEmptyError
+            raise TenantNameEmptyError('ชื่อต้องไม่ว่าง')
         return value
 
 def calculate_electricity_bill(unit: ElectricityUnit, rate: ElectricityRate) -> MoneyTHB:
@@ -79,6 +80,8 @@ class Room(DomainValueObject):
         return total
 
     def assign_tenant(self, tenant: Tenant) -> 'Room':
+        if self.status == RoomStatus.OCCUPIED:
+            raise RoomAlreadyOccupiedError('ห้องนี้มีผู้เช่าแล้ว')
         new_room = self.model_copy(update={
             'tenant': tenant,
             'status': RoomStatus.OCCUPIED,
@@ -86,8 +89,8 @@ class Room(DomainValueObject):
         return new_room
 
     def remove_tenant(self) -> 'Room':
-        remove_tenant = self.model_copy(update={
+        new_room = self.model_copy(update={
             'tenant': None,
             'status': RoomStatus.VACANT,
         })
-        return remove_tenant
+        return new_room
