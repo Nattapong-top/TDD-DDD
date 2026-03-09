@@ -5,7 +5,8 @@ from pydantic import ValidationError
 from Apartment_System.domain.domain_logic import (
     ElectricityUnit, ElectricityRate, WaterUnit, WaterRate,
     MoneyTHB, calculate_electricity_bill, calculate_water_bill,
-    calculate_total_bill, RoomStatus, DomainConfig,)
+    calculate_total_bill, RoomStatus, DomainConfig,
+    TenantNameEmptyError, TenantNameTooLongError, )
 
 from Apartment_System.domain.domain_logic import Room, Tenant
 
@@ -91,11 +92,11 @@ def test_should_tenant_with_valid_name() -> None:
     assert tenant.name == 'nattapong'
 
 def test_should_raise_error_when_tenant_name_is_empty() -> None:
-    with raises(ValidationError):
+    with raises(TenantNameEmptyError):
         tenant = Tenant(name='')
 
 def test_should_raise_error_when_tenant_name_is_too_long() -> None:
-    with raises(ValidationError):
+    with raises(TenantNameTooLongError):
         Tenant(name='a' * 21)
 
 def test_should_create_room_with_status_vacant() -> None:
@@ -167,3 +168,11 @@ def test_should_remove_tenant_from_room() -> None:
     remove_tenant = room.remove_tenant()
     assert remove_tenant.tenant is None
     assert remove_tenant.status == RoomStatus.VACANT
+
+def test_should_raise_error_tenant_empty_name() -> None:
+    with raises(TenantNameEmptyError):
+        Tenant(name='')
+
+def test_should_raise_error_name_tenant_too_long() -> None:
+    with raises(TenantNameTooLongError):
+        Tenant(name='a' * 21)

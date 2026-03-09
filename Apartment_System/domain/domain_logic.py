@@ -1,5 +1,5 @@
 # Domain Logic for Apartment_System
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, Field, ConfigDict, model_validator
 from enum import Enum
 from typing import Optional
 
@@ -18,6 +18,9 @@ class ElectricityRate(PositiveValue): pass
 class WaterUnit(PositiveValue): pass
 class WaterRate(PositiveValue): pass
 
+class TenantNameEmptyError(Exception): pass
+class TenantNameTooLongError(Exception): pass
+
 class DomainConfig(DomainValueObject):
     room_rent: MoneyTHB
     electricity_rate: ElectricityRate
@@ -29,7 +32,17 @@ class RoomStatus(Enum):
     OCCUPIED = 'occupied'
 
 class Tenant(DomainValueObject):
-    name: str = Field(..., min_length=1, max_length=20)
+    name: str
+
+    @model_validator(mode='before')
+    @classmethod
+    def validate_name(cls, value):
+        name = value.get('name', '')
+        if len(name) > 20:
+            raise TenantNameTooLongError
+        if len(name) == 0:
+            raise TenantNameEmptyError
+        return value
 
 def calculate_electricity_bill(unit: ElectricityUnit, rate: ElectricityRate) -> MoneyTHB:
     return calculate_bill(unit, rate)
