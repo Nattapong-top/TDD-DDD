@@ -21,6 +21,7 @@ class WaterRate(PositiveValue): pass
 class TenantNameEmptyError(Exception): pass
 class TenantNameTooLongError(Exception): pass
 class RoomAlreadyOccupiedError(Exception): pass
+class RoomNotOccupiedError(Exception): pass
 
 class DomainConfig(DomainValueObject):
     room_rent: MoneyTHB
@@ -89,6 +90,8 @@ class Room(DomainValueObject):
         return new_room
 
     def remove_tenant(self) -> 'Room':
+        if self.status == RoomStatus.VACANT:
+            raise RoomNotOccupiedError('ห้องนี้ไม่มีผู้เช้า')
         new_room = self.model_copy(update={
             'tenant': None,
             'status': RoomStatus.VACANT,

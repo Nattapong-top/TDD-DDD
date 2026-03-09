@@ -6,7 +6,8 @@ from Apartment_System.domain.domain_logic import (
     ElectricityUnit, ElectricityRate, WaterUnit, WaterRate,
     MoneyTHB, calculate_electricity_bill, calculate_water_bill,
     calculate_total_bill, RoomStatus, DomainConfig,
-    TenantNameEmptyError, TenantNameTooLongError, RoomAlreadyOccupiedError,
+    TenantNameEmptyError, TenantNameTooLongError,
+    RoomAlreadyOccupiedError, RoomNotOccupiedError,
 )
 
 from Apartment_System.domain.domain_logic import Room, Tenant
@@ -183,3 +184,8 @@ def test_should_raise_error_when_room_is_already_occupied() -> None:
     room = Room(room_number='101', tenant=tenant, status=RoomStatus.OCCUPIED)
     with raises(RoomAlreadyOccupiedError):
         room.assign_tenant(tenant)
+
+def test_should_raise_error_when_room_is_not_occupied() -> None:
+    room = Room(room_number='101', status=RoomStatus.VACANT)
+    with raises(RoomNotOccupiedError):
+        room.remove_tenant()
