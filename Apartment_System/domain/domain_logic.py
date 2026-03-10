@@ -22,6 +22,7 @@ class TenantNameEmptyError(Exception): pass
 class TenantNameTooLongError(Exception): pass
 class RoomAlreadyOccupiedError(Exception): pass
 class RoomNotOccupiedError(Exception): pass
+class RoomConfigNotSetError(Exception): pass
 
 class DomainConfig(DomainValueObject):
     room_rent: MoneyTHB
@@ -67,16 +68,18 @@ class Room(DomainValueObject):
     status: RoomStatus
     tenant: Optional[Tenant] = None
     room_rent: Optional[MoneyTHB] = None
+    config: Optional[DomainConfig] = None
 
     def calculate_monthly_bill(
             self,
             electricity_unit: ElectricityUnit,
             water_unit: WaterUnit,
-            config: DomainConfig,
 
     ) -> MoneyTHB:
-        electricity_bill = calculate_electricity_bill(electricity_unit, config.electricity_rate)
-        water_bill = calculate_water_bill(water_unit, config.water_rate)
+        if self.config is None:
+            raise RoomConfigNotSetError('ยังไม่ได้กำหนดราคา Domain Logic')
+        electricity_bill = calculate_electricity_bill(electricity_unit, self.config.electricity_rate)
+        water_bill = calculate_water_bill(water_unit, self.config.water_rate)
         total = calculate_total_bill(electricity_bill, water_bill, self.room_rent)
         return total
 
@@ -91,7 +94,7 @@ class Room(DomainValueObject):
 
     def remove_tenant(self) -> 'Room':
         if self.status == RoomStatus.VACANT:
-            raise RoomNotOccupiedError('ห้องนี้ไม่มีผู้เช้า')
+            raise RoomNotOccupiedError('ห้องนี้ว่างแล้ว')
         new_room = self.model_copy(update={
             'tenant': None,
             'status': RoomStatus.VACANT,

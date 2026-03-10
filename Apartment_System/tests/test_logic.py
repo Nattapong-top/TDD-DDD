@@ -1,4 +1,5 @@
 # Unit Tests for Apartment_System
+from prompt_toolkit.history import InMemoryHistory
 from pytest import raises
 from pydantic import ValidationError
 
@@ -7,7 +8,7 @@ from Apartment_System.domain.domain_logic import (
     MoneyTHB, calculate_electricity_bill, calculate_water_bill,
     calculate_total_bill, RoomStatus, DomainConfig,
     TenantNameEmptyError, TenantNameTooLongError,
-    RoomAlreadyOccupiedError, RoomNotOccupiedError,
+    RoomAlreadyOccupiedError, RoomNotOccupiedError, RoomConfigNotSetError,
 )
 
 from Apartment_System.domain.domain_logic import Room, Tenant
@@ -131,11 +132,12 @@ def test_should_calculate_room_monthly_bill() -> None:
     )
     room = Room(room_number='101',
                 room_rent=MoneyTHB(amount=5000.0),
-                status=RoomStatus.OCCUPIED)
+                status=RoomStatus.OCCUPIED,
+                config = config,
+    )
     bill = room.calculate_monthly_bill(
         electricity_unit=ElectricityUnit(value=100.0),
         water_unit=WaterUnit(value=10.0),
-        config=config,
 
     )
     assert bill.amount == 5990.0
@@ -189,3 +191,33 @@ def test_should_raise_error_when_room_is_not_occupied() -> None:
     room = Room(room_number='101', status=RoomStatus.VACANT)
     with raises(RoomNotOccupiedError):
         room.remove_tenant()
+
+def test_should_calculate_monthly_bill_with_injected_config() -> None:
+    config = DomainConfig(
+        room_rent=MoneyTHB(amount=5000.0),
+        electricity_rate=ElectricityRate(value=8.0),
+        water_rate=WaterRate(value=19.0),
+    )
+    room = Room(
+        room_number='101',
+        status=RoomStatus.OCCUPIED,
+        room_rent=MoneyTHB(amount=5000.0),
+        config=config,
+    )
+    bill = room.calculate_monthly_bill(
+        electricity_unit=ElectricityUnit(value=100.0),
+        water_unit=WaterUnit(value=10.0),
+    )
+    assert bill.amount == 5990.0
+
+def test_should_raise_error_when_config_is_not_set() -> None:
+    room = Room(
+        room_number='101',
+        status=RoomStatus.OCCUPIED,
+        room_rent=MoneyTHB(amount=5000.0),
+    )
+    with raises(RoomConfigNotSetError):
+        room.calculate_monthly_bill(
+            electricity_unit=ElectricityUnit(value=100.0),
+            water_unit=WaterUnit(value=10.0),
+        )
