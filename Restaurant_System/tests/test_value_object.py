@@ -1,6 +1,7 @@
 # Unit Tests for Restaurant_System
 import pytest
 
+from Restaurant_System.domain.custom_error import PaymentNotEnough
 from Restaurant_System.domain.domain_logic import Order
 from Restaurant_System.domain.value_object import (
     MenuItem, MoneyTHB)
@@ -42,3 +43,8 @@ def test_should_calculate_bill_order_price_50_payment_100_change_50_baht():
                                         payment=MoneyTHB(amount=100))
     assert menu.name == 'kaparwkaikidow'
     assert change == MoneyTHB(amount=50.0)
+
+def test_should_raise_error_when_buy_price_50_with_payment_Not_enough_10_baht():
+    order = Order(menu=MenuItem(name='kaparwkaikidow'), price=MoneyTHB(amount=50.0))
+    with pytest.raises(PaymentNotEnough):
+        order.calculate_bill(menu_item=MenuItem(name='kaparwkaikidow'), payment=MoneyTHB(amount=40))

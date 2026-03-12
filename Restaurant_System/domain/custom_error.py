@@ -1,0 +1,1 @@
+class PaymentNotEnough(Exception): pass
