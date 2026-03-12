@@ -1,6 +1,7 @@
 # Unit Tests for Restaurant_System
 import pytest
 
+from Restaurant_System.domain.domain_logic import Order
 from Restaurant_System.domain.value_object import (
     MenuItem, MoneyTHB)
 
@@ -27,3 +28,8 @@ def test_should_raise_error_when_MoneyTHB_is_negative():
 def test_should_raise_error_when_MoneyTHB_is_more_than_1000():
     with pytest.raises(ValueError):
         money_thb = MoneyTHB(value=1001)
+
+def test_should_create_order_with_valid():
+    order = Order(menu=MenuItem(value='kaparwkaikidow'), price=MoneyTHB(value=50.0))
+    assert order.menu == MenuItem(value='kaparwkaikidow')
+    assert order.price == MoneyTHB(value=50.0)
