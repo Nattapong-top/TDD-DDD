@@ -6,30 +6,39 @@ from Restaurant_System.domain.value_object import (
     MenuItem, MoneyTHB)
 
 def test_should_create_MenuItem_is_valid():
-    menu_item = MenuItem(value='kaparwkaikidow')
-    assert menu_item.value == 'kaparwkaikidow'
+    menu_item = MenuItem(name='kaparwkaikidow')
+    assert menu_item.name == 'kaparwkaikidow'
 
 def test_should_raise_error_when_Menuitem_is_Empty():
     with pytest.raises(ValueError):
-        menu_item = MenuItem(value='')
+        menu_item = MenuItem(name='')
 
 def test_should_raise_error_when_MenuItem_is_name_too_long():
     with pytest.raises(ValueError):
-        menu_item = MenuItem(value='kaparwkaikidow'*20)
+        menu_item = MenuItem(name='kaparwkaikidow'*20)
 
 def test_should_create_MoneyTHB_is_valid():
-    money_thb = MoneyTHB(value=50.0)
-    assert money_thb.value == 50.0
+    money_thb = MoneyTHB(amount=50.0)
+    assert money_thb.amount == 50.0
 
 def test_should_raise_error_when_MoneyTHB_is_negative():
     with pytest.raises(ValueError):
-        money_thb = MoneyTHB(value=-1)
+        money_thb = MoneyTHB(amount=-1)
 
 def test_should_raise_error_when_MoneyTHB_is_more_than_1000():
     with pytest.raises(ValueError):
-        money_thb = MoneyTHB(value=1001)
+        money_thb = MoneyTHB(amount=1001)
 
 def test_should_create_order_with_valid():
-    order = Order(menu=MenuItem(value='kaparwkaikidow'), price=MoneyTHB(value=50.0))
-    assert order.menu == MenuItem(value='kaparwkaikidow')
-    assert order.price == MoneyTHB(value=50.0)
+    order = Order(menu=MenuItem(name='kaparwkaikidow'), price=MoneyTHB(amount=50.0))
+    assert order.menu == MenuItem(name='kaparwkaikidow')
+    assert order.price == MoneyTHB(amount=50.0)
+
+def test_should_calculate_bill_order_price_50_payment_100_change_50_baht():
+    menu_item = MenuItem(name='kaparwkaikidow')
+    price_item = MoneyTHB(amount=50.0)
+    order = Order(menu=menu_item, price=price_item)
+    menu, change = order.calculate_bill(menu_item=MenuItem(name='kaparwkaikidow'),
+                                        payment=MoneyTHB(amount=100))
+    assert menu.name == 'kaparwkaikidow'
+    assert change == MoneyTHB(amount=50.0)
