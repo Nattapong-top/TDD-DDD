@@ -1,13 +1,23 @@
 # Domain Logic for Restaurant_System
-from pydantic import BaseModel
+from pydantic import BaseModel, model_validator
 
-from Restaurant_System.domain.custom_error import PaymentNotEnough
+from Restaurant_System.domain.custom_error import PaymentNotEnough, OrderNotInMenu
 from Restaurant_System.domain.value_object import MenuItem, MoneyTHB
 
 
 class Order(BaseModel):
     menu: MenuItem
     price: MoneyTHB
+    available_menus: dict[str, MoneyTHB] = {}
+
+    @model_validator(mode='before')
+    @classmethod
+    def _validate_menus(cls, value):
+        menu = value.get('menu')
+        available_menus = value.get('available_menus', [])
+        if menu.name not in available_menus:
+            raise OrderNotInMenu('ไม่มีเมนูนี้ครับ')
+        return value
 
     def calculate_bill(self, menu_item: MenuItem, payment: MoneyTHB) -> tuple[MenuItem, MoneyTHB]:
         self._validate_amount_payment(payment)
