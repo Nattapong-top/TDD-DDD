@@ -6,7 +6,7 @@ import pytest
 from Restaurant_System.domain.custom_error import (
     PaymentNotEnough, OrderNotInMenu, TableAlreadyOccupiedError)
 from Restaurant_System.domain.domain_logic import (
-    Order, Table)
+    Order, Table, Customer)
 from Restaurant_System.domain.value_object import (
     MenuItem, MoneyTHB, TableID, TableName, TableStatus, CustomerID, CustomerName, CustomerPhoneNumber)
 
@@ -196,3 +196,22 @@ def test_should_raise_error_customer_phone_number_invalid():
         CustomerPhoneNumber(
         phone_number=phone_number,
     )
+
+def test_should_create_customer_valid():
+    name = 'nattapong'
+    last = 'developer'
+    phone_number = '0981234583'
+    customer = Customer(
+        customer_id=CustomerID(customer_id='123'),
+        customer_name=CustomerName(
+            first_name=name,
+            last_name=last),
+        customer_phone_number=CustomerPhoneNumber(
+            phone_number=phone_number)
+    )
+    assert customer.customer_id == CustomerID(customer_id='123')
+    assert customer.customer_name == CustomerName(
+        first_name=name,
+        last_name=last)
+    assert customer.customer_phone_number == CustomerPhoneNumber(
+        phone_number=phone_number)
