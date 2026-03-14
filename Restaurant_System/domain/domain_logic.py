@@ -46,6 +46,13 @@ class Table(DomainValueObject):
         })
         return new_table
 
+    def clear_order(self) -> 'Table':
+        new_table = self.model_copy(update={
+            'order': None,
+            'table_status': TableStatus.AVAILABLE,
+        })
+        return new_table
+
     def _validate_status(self):
         if self.table_status == TableStatus.OCCUPIED:
             raise TableAlreadyOccupiedError('โต๊นี้ยังไม่ว่างครับ')

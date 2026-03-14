@@ -126,3 +126,21 @@ def test_should_raise_error_when_table_is_already_occupied():
 
     with pytest.raises(TableAlreadyOccupiedError):
         new_table.assign_order(order)
+
+def test_should_clear_order_from_table_and_change_status_available():
+    menu_item = MenuItem(name='ข้าวผัด')
+    price_item = MoneyTHB(amount=50.0)
+    table = Table(
+        table_id=TableID(table_id='101'),
+        table_name=TableName(table_name='T101'),
+    )
+    order = Order(
+        menu=menu_item,
+        price=price_item,
+        available_menus={'ข้าวผัด':MoneyTHB(amount=50.0)}
+    )
+    new_table = table.assign_order(order)
+    new_table = new_table.clear_order()
+
+    assert new_table.table_id == TableID(table_id='101')
+    assert new_table.table_status == TableStatus.AVAILABLE
