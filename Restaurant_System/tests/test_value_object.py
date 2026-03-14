@@ -163,3 +163,9 @@ def test_should_calculate_bill_from_table_price_50_payment_100_change_50_bath():
     assert menu == menu_item
     assert new_table.table_id == TableID(table_id='101')
 
+def test_should_get_price_from_available_menus():
+    order = Order(
+        menu=MenuItem(name='ข้าวผัด'),
+        available_menus={'ข้าวผัด': MoneyTHB(amount=50.0)}
+    )
+    assert order.price == MoneyTHB(amount=50.0)

@@ -11,8 +11,11 @@ from Restaurant_System.domain.value_object import (MenuItem, MoneyTHB,
 
 class Order(DomainValueObject):
     menu: MenuItem
-    price: MoneyTHB
     available_menus: dict[str, MoneyTHB] = {}
+
+    @property
+    def price(self) -> MoneyTHB:
+        return self.available_menus[self.menu.name]
 
     @model_validator(mode='before')
     @classmethod
