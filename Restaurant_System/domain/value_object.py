@@ -28,3 +28,6 @@ class CustomerID(DomainValueObject):
 class CustomerName(DomainValueObject):
     first_name : str = Field(..., min_length=1, max_length=50)
     last_name : str = Field(..., min_length=1, max_length=50)
+
+class CustomerPhoneNumber(DomainValueObject):
+    phone_number: str = Field(..., min_length=10, max_length=10, pattern=r'^\d+$')

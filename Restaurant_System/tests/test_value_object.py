@@ -8,7 +8,7 @@ from Restaurant_System.domain.custom_error import (
 from Restaurant_System.domain.domain_logic import (
     Order, Table)
 from Restaurant_System.domain.value_object import (
-    MenuItem, MoneyTHB, TableID, TableName, TableStatus, CustomerID, CustomerName)
+    MenuItem, MoneyTHB, TableID, TableName, TableStatus, CustomerID, CustomerName, CustomerPhoneNumber)
 
 def test_should_create_MenuItem_is_valid():
     menu_item = MenuItem(name='kaparwkaikidow')
@@ -182,3 +182,17 @@ def test_should_create_customer_name_lastname_valid():
         last_name=last,)
     assert customer_name.first_name == name
     assert customer_name.last_name == last
+
+def test_should_create_customer_phone_number_valid():
+    phone_number = '0981234583'
+    customer_phone_number = CustomerPhoneNumber(
+        phone_number=phone_number,
+    )
+    assert customer_phone_number.phone_number == phone_number
+
+def test_should_raise_error_customer_phone_number_invalid():
+    phone_number = '094357683i'
+    with pytest.raises(ValueError):
+        CustomerPhoneNumber(
+        phone_number=phone_number,
+    )
