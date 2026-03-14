@@ -158,7 +158,10 @@ def test_should_create_domain_config_with_valid_value() -> None:
 
 def test_should_assign_tenant_to_room() -> None:
     tenant = Tenant(name='nattapong')
-    room = Room(room_number='101', tenant=tenant, status=RoomStatus.VACANT)
+    room = Room(
+        room_number='101',
+        tenant=tenant,
+        status=RoomStatus.VACANT)
 
     new_room = room.assign_tenant(tenant)
 
@@ -168,7 +171,10 @@ def test_should_assign_tenant_to_room() -> None:
 
 def test_should_remove_tenant_from_room() -> None:
     tenant = Tenant(name='nattapong')
-    room = Room(room_number='101', tenant=tenant, status=RoomStatus.OCCUPIED)
+    room = Room(
+        room_number='101',
+        tenant=tenant,
+        status=RoomStatus.OCCUPIED)
     remove_tenant = room.remove_tenant()
     assert remove_tenant.tenant is None
     assert remove_tenant.status == RoomStatus.VACANT

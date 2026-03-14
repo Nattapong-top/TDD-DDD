@@ -1,4 +1,6 @@
 # Domain Logic for Restaurant_System
+from typing import Optional
+
 from pydantic import BaseModel, model_validator
 
 from Restaurant_System.domain.custom_error import (
@@ -34,3 +36,11 @@ class Table(DomainValueObject):
     table_id: TableID
     table_name: TableName
     table_status: TableStatus
+    order: Optional[Order] = None
+
+    def assign_order(self, order: Order) -> 'Table':
+        new_table = self.model_copy(update={
+            'order': order,
+            'table_status': TableStatus.OCCUPIED,
+        })
+        return new_table

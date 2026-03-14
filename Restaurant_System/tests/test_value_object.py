@@ -50,8 +50,10 @@ def test_should_calculate_bill_order_price_50_payment_100_change_50_baht():
         menu=menu_item,
         price=price_item,
         available_menus={'kaparwkaikidow':price_item})
-    menu, change = order.calculate_bill(menu_item=MenuItem(name='kaparwkaikidow'),
-                                        payment=MoneyTHB(amount=100))
+    menu, change = order.calculate_bill(
+        menu_item=MenuItem(name='kaparwkaikidow'),
+        payment=MoneyTHB(amount=100)
+    )
     assert menu.name == 'kaparwkaikidow'
     assert change == MoneyTHB(amount=50.0)
 
@@ -93,3 +95,19 @@ def test_should_raise_error_when_table_status_is_invalid():
             table_name=t_name,
             table_status='table_status'
         )
+def test_should_assign_order_to_table_and_change_status_occupied():
+    table = Table(
+        table_id=TableID(table_id='101'),
+        table_name=TableName(table_name='T101'),
+        table_status=TableStatus.AVAILABLE
+    )
+    order = Order(
+        menu=MenuItem(name='ข้าวผัด'),
+        price=MoneyTHB(amount=50.0),
+        available_menus={'ข้าวผัด':MoneyTHB(amount=50.0)}
+    )
+    new_table = table.assign_order(order)
+
+    assert new_table.table_id == TableID(table_id='101')
+    assert new_table.table_status == TableStatus.OCCUPIED
+    assert new_table.order == order
