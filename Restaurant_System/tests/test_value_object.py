@@ -144,3 +144,22 @@ def test_should_clear_order_from_table_and_change_status_available():
 
     assert new_table.table_id == TableID(table_id='101')
     assert new_table.table_status == TableStatus.AVAILABLE
+
+def test_should_calculate_bill_from_table_price_50_payment_100_change_50_bath():
+    menu_item = MenuItem(name='ข้าวผัด')
+    order = Order(
+        menu = menu_item,
+        price = MoneyTHB(amount=50.0),
+        available_menus={'ข้าวผัด':MoneyTHB(amount=50.0)}
+    )
+    new_table = Table(
+        table_id=TableID(table_id='101'),
+        table_name=TableName(table_name='T101'),
+    )
+    new_table = new_table.assign_order(order)
+
+    menu, change = new_table.order.calculate_bill(menu_item=menu_item, payment=MoneyTHB(amount=100))
+    assert change == MoneyTHB(amount=50.0)
+    assert menu == menu_item
+    assert new_table.table_id == TableID(table_id='101')
+
