@@ -2,7 +2,8 @@
 from pydantic import BaseModel, model_validator
 
 from Restaurant_System.domain.custom_error import PaymentNotEnough, OrderNotInMenu
-from Restaurant_System.domain.value_object import MenuItem, MoneyTHB, TableID, TableName, DomainValueObject
+from Restaurant_System.domain.value_object import (MenuItem, MoneyTHB,
+    TableID, TableName, DomainValueObject, TableStatus)
 
 
 class Order(DomainValueObject):
@@ -31,3 +32,4 @@ class Order(DomainValueObject):
 class Table(DomainValueObject):
     table_id: TableID
     table_name: TableName
+    table_status: TableStatus

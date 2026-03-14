@@ -1,3 +1,5 @@
+from enum import Enum
+
 from pydantic import BaseModel, Field, ConfigDict
 
 
@@ -15,3 +17,7 @@ class TableID(DomainValueObject):
 
 class TableName(DomainValueObject):
     table_name : str = Field(..., min_length=1, max_length=20)
+
+class TableStatus(Enum):
+    AVAILABLE = 'available'
+    OCCUPIED = 'occupied'
