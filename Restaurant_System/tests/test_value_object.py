@@ -3,8 +3,10 @@ from idlelib.config_key import AVAILABLE_KEYS
 
 import pytest
 
-from Restaurant_System.domain.custom_error import PaymentNotEnough, OrderNotInMenu
-from Restaurant_System.domain.domain_logic import Order, Table
+from Restaurant_System.domain.custom_error import (
+    PaymentNotEnough, OrderNotInMenu)
+from Restaurant_System.domain.domain_logic import (
+    Order, Table)
 from Restaurant_System.domain.value_object import (
     MenuItem, MoneyTHB, TableID, TableName, TableStatus)
 
@@ -82,3 +84,12 @@ def test_should_create_table_with_status_available():
     assert table.table_status == TableStatus.AVAILABLE
 
 
+def test_should_raise_error_when_table_status_is_invalid():
+    t_id = TableID(table_id='101')
+    t_name = TableName(table_name='T101')
+    with pytest.raises(ValueError):
+        Table(
+            table_id=t_id,
+            table_name=t_name,
+            table_status='table_status'
+        )

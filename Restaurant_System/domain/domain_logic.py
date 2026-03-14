@@ -1,7 +1,8 @@
 # Domain Logic for Restaurant_System
 from pydantic import BaseModel, model_validator
 
-from Restaurant_System.domain.custom_error import PaymentNotEnough, OrderNotInMenu
+from Restaurant_System.domain.custom_error import (
+    PaymentNotEnough, OrderNotInMenu)
 from Restaurant_System.domain.value_object import (MenuItem, MoneyTHB,
     TableID, TableName, DomainValueObject, TableStatus)
 
