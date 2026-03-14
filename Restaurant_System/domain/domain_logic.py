@@ -2,10 +2,10 @@
 from pydantic import BaseModel, model_validator
 
 from Restaurant_System.domain.custom_error import PaymentNotEnough, OrderNotInMenu
-from Restaurant_System.domain.value_object import MenuItem, MoneyTHB
+from Restaurant_System.domain.value_object import MenuItem, MoneyTHB, TableID, TableName, DomainValueObject
 
 
-class Order(BaseModel):
+class Order(DomainValueObject):
     menu: MenuItem
     price: MoneyTHB
     available_menus: dict[str, MoneyTHB] = {}
@@ -27,3 +27,7 @@ class Order(BaseModel):
     def _validate_amount_payment(self, payment: MoneyTHB):
         if payment.amount < self.price.amount:
             raise PaymentNotEnough(f'จ่ายเงินมา {payment.amount} บาท ไม่พอ {self.price.amount - payment.amount} บาท')
+
+class Table(DomainValueObject):
+    table_id: TableID
+    table_name: TableName

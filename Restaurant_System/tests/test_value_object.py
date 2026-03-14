@@ -2,9 +2,9 @@
 import pytest
 
 from Restaurant_System.domain.custom_error import PaymentNotEnough, OrderNotInMenu
-from Restaurant_System.domain.domain_logic import Order
+from Restaurant_System.domain.domain_logic import Order, Table
 from Restaurant_System.domain.value_object import (
-    MenuItem, MoneyTHB)
+    MenuItem, MoneyTHB, TableID, TableName)
 
 def test_should_create_MenuItem_is_valid():
     menu_item = MenuItem(name='kaparwkaikidow')
@@ -67,3 +67,12 @@ def test_should_raise_error_when_order_NotInMenu():
         price_item = MoneyTHB(amount=50.0)
         Order(menu=menu_item, price=price_item, available_menus=available_menus)
 
+def test_should_create_table_entity_when_valid():
+    t_id = TableID(table_id='101')
+    t_name = TableName(table_name='T101')
+    table = Table(
+        table_id=t_id,
+        table_name=t_name
+    )
+    assert table.table_id == t_id
+    assert table.table_name == t_name
