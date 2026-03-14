@@ -4,7 +4,7 @@ from idlelib.config_key import AVAILABLE_KEYS
 import pytest
 
 from Restaurant_System.domain.custom_error import (
-    PaymentNotEnough, OrderNotInMenu)
+    PaymentNotEnough, OrderNotInMenu, TableAlreadyOccupiedError)
 from Restaurant_System.domain.domain_logic import (
     Order, Table)
 from Restaurant_System.domain.value_object import (
@@ -111,3 +111,18 @@ def test_should_assign_order_to_table_and_change_status_occupied():
     assert new_table.table_id == TableID(table_id='101')
     assert new_table.table_status == TableStatus.OCCUPIED
     assert new_table.order == order
+
+def test_should_raise_error_when_table_is_already_occupied():
+    table = Table(
+        table_id=TableID(table_id='101'),
+        table_name=TableName(table_name='T101'),
+    )
+    order = Order(
+        menu=MenuItem(name='ข้าวผัด'),
+        price=MoneyTHB(amount=50.0),
+        available_menus={'ข้าวผัด':MoneyTHB(amount=50.0)}
+    )
+    new_table = table.assign_order(order)
+
+    with pytest.raises(TableAlreadyOccupiedError):
+        new_table.assign_order(order)
