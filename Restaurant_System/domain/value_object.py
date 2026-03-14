@@ -21,3 +21,7 @@ class TableName(DomainValueObject):
 class TableStatus(Enum):
     AVAILABLE = 'available'
     OCCUPIED = 'occupied'
+
+class CustomerID(DomainValueObject):
+    customer_id : str = Field(..., min_length=1, max_length=20)
+

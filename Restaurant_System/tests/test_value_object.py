@@ -8,7 +8,7 @@ from Restaurant_System.domain.custom_error import (
 from Restaurant_System.domain.domain_logic import (
     Order, Table)
 from Restaurant_System.domain.value_object import (
-    MenuItem, MoneyTHB, TableID, TableName, TableStatus)
+    MenuItem, MoneyTHB, TableID, TableName, TableStatus, CustomerID)
 
 def test_should_create_MenuItem_is_valid():
     menu_item = MenuItem(name='kaparwkaikidow')
@@ -169,3 +169,9 @@ def test_should_get_price_from_available_menus():
         available_menus={'ข้าวผัด': MoneyTHB(amount=50.0)}
     )
     assert order.price == MoneyTHB(amount=50.0)
+
+def test_should_create_customer_id_with_vo_valid():
+    customer_id = CustomerID(customer_id='123')
+    assert customer_id.customer_id == '123'
+
+
