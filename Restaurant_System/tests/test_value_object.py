@@ -4,11 +4,12 @@ from idlelib.config_key import AVAILABLE_KEYS
 import pytest
 
 from Restaurant_System.domain.custom_error import (
-    PaymentNotEnough, OrderNotInMenu, TableAlreadyOccupiedError)
+    PaymentNotEnough, OrderNotInMenu, TableAlreadyOccupiedError, TableNotOccupiedError)
 from Restaurant_System.domain.domain_logic import (
     Order, Table, Customer)
 from Restaurant_System.domain.value_object import (
-    MenuItem, MoneyTHB, TableID, TableName, TableStatus, CustomerID, CustomerName, CustomerPhoneNumber)
+    MenuItem, MoneyTHB, TableID, TableName, TableStatus, CustomerID,
+    CustomerName, CustomerPhoneNumber)
 
 @pytest.fixture
 def customer():
@@ -169,7 +170,6 @@ def test_should_calculate_bill_from_table_price_50_payment_100_change_50_bath():
     menu_item = MenuItem(name='ข้าวผัด')
     order = Order(
         menu = menu_item,
-        price = MoneyTHB(amount=50.0),
         available_menus={'ข้าวผัด':MoneyTHB(amount=50.0)}
     )
     new_table = Table(
@@ -263,3 +263,8 @@ def test_should_assign_order_after_customer_seated(customer, table, order):
     assert new_table.table_status == TableStatus.OCCUPIED
     assert new_table.table_id == TableID(table_id='101')
     assert new_table.order == order
+
+def test_should_raise_error_TableNotOccupiedError(table):
+    new_table = table
+    with pytest.raises(TableNotOccupiedError):
+        new_table.clear_order()

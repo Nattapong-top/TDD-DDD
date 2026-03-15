@@ -4,7 +4,7 @@ from typing import Optional
 from pydantic import BaseModel, model_validator
 
 from Restaurant_System.domain.custom_error import (
-    PaymentNotEnough, OrderNotInMenu, TableAlreadyOccupiedError)
+    PaymentNotEnough, OrderNotInMenu, TableAlreadyOccupiedError, TableNotOccupiedError)
 from Restaurant_System.domain.value_object import (MenuItem, MoneyTHB,
     TableID, TableName, DomainValueObject, TableStatus, CustomerID,
     CustomerName, CustomerPhoneNumber)
@@ -67,11 +67,16 @@ class Table(DomainValueObject):
         return new_table
 
     def clear_order(self) -> 'Table':
+        self._validate_not_occupied()
         new_table = self.model_copy(update={
             'order': None,
             'table_status': TableStatus.AVAILABLE,
         })
         return new_table
+
+    def _validate_not_occupied(self):
+        if self.table_status == TableStatus.AVAILABLE:
+            raise TableNotOccupiedError('โต๊นี้ว่างอยู่แล้วครับ')
 
     def _validate_status(self):
         if self.table_status == TableStatus.OCCUPIED:
