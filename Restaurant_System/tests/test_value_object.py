@@ -215,3 +215,23 @@ def test_should_create_customer_valid():
         last_name=last)
     assert customer.customer_phone_number == CustomerPhoneNumber(
         phone_number=phone_number)
+
+def test_should_assign_customer_to_table():
+    customer = Customer(
+        customer_id=CustomerID(customer_id='123'),
+        customer_name=CustomerName(
+            first_name='nattapong',
+            last_name='developer'),
+        customer_phone_number=CustomerPhoneNumber(
+            phone_number='0981234583')
+    )
+    table = Table(
+        table_id=TableID(table_id='101'),
+        table_name=TableName(table_name='T101'),
+    )
+    new_table = table.assign_customer(customer)
+    assert new_table.customer == customer
+    assert new_table.table_status == TableStatus.OCCUPIED
+    assert new_table.table_id == TableID(table_id='101')
+
+

@@ -40,11 +40,20 @@ class Table(DomainValueObject):
     table_name: TableName
     table_status: TableStatus = TableStatus.AVAILABLE
     order: Optional[Order] = None
+    customer: Optional[Customer] = None
+
 
     def assign_order(self, order: Order) -> 'Table':
         self._validate_status()
         new_table = self.model_copy(update={
             'order': order,
+            'table_status': TableStatus.OCCUPIED,
+        })
+        return new_table
+
+    def assign_customer(self, customer:Customer) -> 'Table':
+        new_table = self.model_copy(update={
+            'customer': customer,
             'table_status': TableStatus.OCCUPIED,
         })
         return new_table
