@@ -6,7 +6,8 @@ from pydantic import BaseModel, model_validator
 from Restaurant_System.domain.custom_error import (
     PaymentNotEnough, OrderNotInMenu, TableAlreadyOccupiedError)
 from Restaurant_System.domain.value_object import (MenuItem, MoneyTHB,
-    TableID, TableName, DomainValueObject, TableStatus, CustomerID, CustomerName, CustomerPhoneNumber)
+    TableID, TableName, DomainValueObject, TableStatus, CustomerID,
+    CustomerName, CustomerPhoneNumber)
 
 
 class Order(DomainValueObject):
@@ -34,6 +35,13 @@ class Order(DomainValueObject):
     def _validate_amount_payment(self, payment: MoneyTHB):
         if payment.amount < self.price.amount:
             raise PaymentNotEnough(f'จ่ายเงินมา {payment.amount} บาท ไม่พอ {self.price.amount - payment.amount} บาท')
+
+
+class Customer(DomainValueObject):
+    customer_id: CustomerID
+    customer_name: CustomerName
+    customer_phone_number: CustomerPhoneNumber
+
 
 class Table(DomainValueObject):
     table_id: TableID
@@ -69,7 +77,3 @@ class Table(DomainValueObject):
         if self.table_status == TableStatus.OCCUPIED:
             raise TableAlreadyOccupiedError('โต๊นี้ยังไม่ว่างครับ')
 
-class Customer(DomainValueObject):
-    customer_id: CustomerID
-    customer_name: CustomerName
-    customer_phone_number: CustomerPhoneNumber

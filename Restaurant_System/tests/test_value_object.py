@@ -61,7 +61,6 @@ def test_should_raise_error_when_MoneyTHB_is_more_than_1000():
 def test_should_create_order_with_valid():
     order = Order(
         menu=MenuItem(name='kaparwkaikidow'),
-        price=MoneyTHB(amount=50.0),
         available_menus={'kaparwkaikidow': MoneyTHB(amount=50.0)}
     )
     assert order.menu == MenuItem(name='kaparwkaikidow')
@@ -84,7 +83,6 @@ def test_should_calculate_bill_order_price_50_payment_100_change_50_baht():
 def test_should_raise_error_when_buy_price_50_with_payment_Not_enough_10_baht():
     order = Order(
         menu=MenuItem(name='kaparwkaikidow'),
-        price=MoneyTHB(amount=50.0),
         available_menus={'kaparwkaikidow':MoneyTHB(amount=50.0)}
     )
     with pytest.raises(PaymentNotEnough):
@@ -127,7 +125,6 @@ def test_should_assign_order_to_table_and_change_status_occupied():
     )
     order = Order(
         menu=MenuItem(name='ข้าวผัด'),
-        price=MoneyTHB(amount=50.0),
         available_menus={'ข้าวผัด':MoneyTHB(amount=50.0)}
     )
     new_table = table.assign_order(order)
@@ -136,20 +133,19 @@ def test_should_assign_order_to_table_and_change_status_occupied():
     assert new_table.table_status == TableStatus.OCCUPIED
     assert new_table.order == order
 
-def test_should_raise_error_when_table_is_already_occupied():
+def test_should_raise_error_when_table_is_already_occupied(customer):
     table = Table(
         table_id=TableID(table_id='101'),
         table_name=TableName(table_name='T101'),
     )
     order = Order(
         menu=MenuItem(name='ข้าวผัด'),
-        price=MoneyTHB(amount=50.0),
         available_menus={'ข้าวผัด':MoneyTHB(amount=50.0)}
     )
-    new_table = table.assign_order(order)
+    new_table = table.assign_customer(customer)
 
     with pytest.raises(TableAlreadyOccupiedError):
-        new_table.assign_order(order)
+        new_table.assign_customer(customer)
 
 def test_should_clear_order_from_table_and_change_status_available():
     menu_item = MenuItem(name='ข้าวผัด')
