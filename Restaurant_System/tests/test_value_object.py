@@ -10,6 +10,30 @@ from Restaurant_System.domain.domain_logic import (
 from Restaurant_System.domain.value_object import (
     MenuItem, MoneyTHB, TableID, TableName, TableStatus, CustomerID, CustomerName, CustomerPhoneNumber)
 
+@pytest.fixture
+def customer():
+    return Customer(
+        customer_id=CustomerID(customer_id='123'),
+        customer_name=CustomerName(first_name='nattapong',
+                                   last_name='developer'),
+        customer_phone_number=CustomerPhoneNumber(phone_number='0984572874')
+    )
+
+@pytest.fixture
+def table():
+    return Table(
+        table_id=TableID(table_id='101'),
+        table_name=TableName(table_name='T101'),
+    )
+
+@pytest.fixture
+def order():
+    return Order(
+        menu=MenuItem(name='ข้าวผัด'),
+        available_menus={'ข้าวผัด': MoneyTHB(amount=50.0)}
+    )
+
+
 def test_should_create_MenuItem_is_valid():
     menu_item = MenuItem(name='kaparwkaikidow')
     assert menu_item.name == 'kaparwkaikidow'
@@ -235,3 +259,11 @@ def test_should_assign_customer_to_table():
     assert new_table.table_id == TableID(table_id='101')
 
 
+def test_should_assign_order_after_customer_seated(customer, table, order):
+    new_table = table.assign_customer(customer)
+    new_table = new_table.assign_order(order)
+
+    assert new_table.customer == customer
+    assert new_table.table_status == TableStatus.OCCUPIED
+    assert new_table.table_id == TableID(table_id='101')
+    assert new_table.order == order

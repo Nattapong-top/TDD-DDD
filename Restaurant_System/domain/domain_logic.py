@@ -44,7 +44,6 @@ class Table(DomainValueObject):
 
 
     def assign_order(self, order: Order) -> 'Table':
-        self._validate_status()
         new_table = self.model_copy(update={
             'order': order,
             'table_status': TableStatus.OCCUPIED,
@@ -52,6 +51,7 @@ class Table(DomainValueObject):
         return new_table
 
     def assign_customer(self, customer:Customer) -> 'Table':
+        self._validate_status()
         new_table = self.model_copy(update={
             'customer': customer,
             'table_status': TableStatus.OCCUPIED,
