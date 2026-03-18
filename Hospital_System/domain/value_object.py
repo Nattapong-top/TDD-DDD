@@ -1,4 +1,7 @@
-from pydantic import BaseModel, Field, field_validator, ConfigDict
+from datetime import datetime, date, timedelta
+from typing import Tuple
+
+from pydantic import BaseModel, Field, field_validator, ConfigDict, model_validator
 
 
 class DomainValueObject(BaseModel):
@@ -36,3 +39,18 @@ class PhoneNumber(DomainValueObject):
             raise ValueError('ห้ามมีตัวอักษรครับ')
         return v
 
+class DateOfBirth(DomainValueObject):
+    year: int
+    month: int = Field(..., ge=1, le=12)
+    day: int = Field(..., ge=1, le=31)
+
+    @model_validator(mode='after')
+    def _must_not_be_future_date_and_over_150_years(self) -> 'DateOfBirth':
+        dob = date(self.year, self.month, self.day)
+        if dob > date.today():
+            raise ValueError('วันเกิดห้ามเป็นวันในอนาคต')
+
+        age_in_years = date.today().year - dob.year
+        if age_in_years > 150:
+            raise ValueError('อายุห้ามเกิดน 150 ปี')
+        return self
