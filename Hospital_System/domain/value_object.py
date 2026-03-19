@@ -85,3 +85,8 @@ class PatientRights(Enum):
 
 class Rights(DomainValueObject):
     rights_type: PatientRights
+
+
+class BloodPressure(DomainValueObject):
+    systolic: int = Field(..., ge=90, le=140)
+    diastolic: int = Field(..., ge=60, le=90)

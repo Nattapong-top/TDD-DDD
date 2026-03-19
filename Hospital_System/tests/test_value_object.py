@@ -3,7 +3,7 @@ from pydantic import ValidationError
 from pytest import raises, fixture, approx
 from datetime import date
 from Hospital_System.domain.value_object import (
-    Name, PhoneNumber, DateOfBirth, Address, Province, PatientRights, Rights)
+    Name, PhoneNumber, DateOfBirth, Address, Province, PatientRights, Rights, BloodPressure)
 
 
 # ส่วนของ VO Name เทสชื่อและนามสกุล
@@ -175,3 +175,24 @@ def test_should_create_Rights_is_valid():
 def test_should_raise_error_when_PatientRights_type_is_invalid_NotInEnum():
     with raises(ValueError):
         Rights(rights_type='บัตรดำ')
+
+# ส่วนของ VO BloodPressure เทสวัดชีพจร
+def test_should_create_BloodPressure_is_valid():
+    blood_pressure = BloodPressure(systolic=120, diastolic=80)
+    assert blood_pressure == BloodPressure(systolic=120, diastolic=80)
+
+def test_should_raise_error_when_BloodPressure_systolic_over_of_range():
+    with raises(ValueError):
+        BloodPressure(systolic=200, diastolic=80)
+
+def test_should_raise_error_when_BloodPressure_systolic_lower_of_range():
+    with raises(ValueError):
+        BloodPressure(systolic=120, diastolic=8)
+
+def test_should_raise_error_when_BloodPressure_diastolic_over_range():
+    with raises(ValueError):
+        BloodPressure(systolic=120, diastolic=91)
+
+def test_should_raise_error_when_BloodPressure_diastolic_lower_of_range():
+    with raises(ValueError):
+        BloodPressure(systolic=120, diastolic=9)
