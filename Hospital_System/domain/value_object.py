@@ -90,3 +90,9 @@ class Rights(DomainValueObject):
 class BloodPressure(DomainValueObject):
     systolic: int = Field(..., ge=90, le=140)
     diastolic: int = Field(..., ge=60, le=90)
+
+
+class Weight(DomainValueObject):
+    value: float = Field(..., ge=0.2, le=300)
+
+

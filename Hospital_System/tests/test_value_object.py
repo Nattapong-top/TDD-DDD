@@ -3,7 +3,7 @@ from pydantic import ValidationError
 from pytest import raises, fixture, approx
 from datetime import date
 from Hospital_System.domain.value_object import (
-    Name, PhoneNumber, DateOfBirth, Address, Province, PatientRights, Rights, BloodPressure)
+    Name, PhoneNumber, DateOfBirth, Address, Province, PatientRights, Rights, BloodPressure, Weight, Height)
 
 
 # ส่วนของ VO Name เทสชื่อและนามสกุล
@@ -196,3 +196,25 @@ def test_should_raise_error_when_BloodPressure_diastolic_over_range():
 def test_should_raise_error_when_BloodPressure_diastolic_lower_of_range():
     with raises(ValueError):
         BloodPressure(systolic=120, diastolic=9)
+
+# ส่วนของ VO Weight เทสน้ำหนัก
+def test_should_create_Weight_is_valid():
+    weight = Weight(value=80)
+    assert weight == Weight(value=80)
+
+def test_should_raise_error_when_Weight_over_of_range():
+    with raises(ValueError):
+        Weight(value=301)
+
+def test_should_raise_error_when_Weight_lower_of_range():
+    with raises(ValueError):
+        Weight(value=0.1)
+
+def test_should_raise_error_when_Weight_input_str():
+    with raises(ValueError):
+        Weight(value='สิบ')
+
+def test_should_raise_error_when_Weight_is_negative():
+    with raises(ValueError):
+        Weight(value=-1)
+
