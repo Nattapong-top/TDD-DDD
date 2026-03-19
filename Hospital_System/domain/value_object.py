@@ -76,3 +76,12 @@ class Address(DomainValueObject):
     district: str = Field(..., min_length=1, max_length=50, )
     province: Province
     postal_code: str = Field(..., min_length=5, max_length=5, pattern=r'^\d{5}$')
+
+
+class PatientRights(Enum):
+    GOLD_CARD = 'บัตรทอง'
+    SOCIAL_SECURITY = 'ประกันสังคม'
+    COMPANY_INSURANCE = 'ประกันบริษัท'
+
+class Rights(DomainValueObject):
+    rights_type: PatientRights

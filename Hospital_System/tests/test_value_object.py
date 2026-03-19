@@ -2,7 +2,8 @@
 from pydantic import ValidationError
 from pytest import raises, fixture, approx
 from datetime import date
-from Hospital_System.domain.value_object import Name, PhoneNumber, DateOfBirth, Address, Province
+from Hospital_System.domain.value_object import (
+    Name, PhoneNumber, DateOfBirth, Address, Province, PatientRights, Rights)
 
 
 # ส่วนของ VO Name เทสชื่อและนามสกุล
@@ -158,3 +159,19 @@ def test_should_create_Address_when_without_street_is_valid():
         postal_code='49000'
     )
     assert address.street is None
+
+def test_should_create_PatientRights_is_valid():
+    rights = PatientRights.GOLD_CARD
+    assert rights == PatientRights.GOLD_CARD
+
+def test_should_raise_error_when_PatientRights_is_invalid_NotInEnum():
+    with raises(ValueError):
+        PatientRights('บัตรหมดอายุ')
+
+def test_should_create_Rights_is_valid():
+    rights = Rights(rights_type=PatientRights.COMPANY_INSURANCE)
+    assert rights.rights_type == PatientRights.COMPANY_INSURANCE
+
+def test_should_raise_error_when_PatientRights_type_is_invalid_NotInEnum():
+    with raises(ValueError):
+        Rights(rights_type='บัตรดำ')
