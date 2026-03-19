@@ -2,7 +2,7 @@
 from pydantic import ValidationError
 from pytest import raises, fixture, approx
 from datetime import date
-from Hospital_System.domain.value_object import Name, PhoneNumber, DateOfBirth
+from Hospital_System.domain.value_object import Name, PhoneNumber, DateOfBirth, Address, Province
 
 
 # ส่วนของ VO Name เทสชื่อและนามสกุล
@@ -92,3 +92,69 @@ def test_should_create_DateOfBirth_is_today():
     assert dob.year == today.year
     assert dob.month == today.month
     assert dob.day == today.day
+
+# ส่วนของ VO Address เทสที่อยู่
+def test_should_create_registered_Address_is_valid():
+    registered_address = Address(
+        house_number='10',
+        street='วิวิธสุรการ',
+        sub_district='มุกดาหาร',
+        district='เมือง',
+        province=Province.MUKDAHAN,
+        postal_code='49000'
+    )  # เลขที่ 10 ถนนวิวิธสุรการ ต.มุกดาหาร อ.เมือง จ.มุกดาหาร 49000
+
+    assert registered_address.house_number == '10'
+    assert registered_address.street == 'วิวิธสุรการ'
+    assert registered_address.sub_district == 'มุกดาหาร'
+    assert registered_address.district == 'เมือง'
+    assert registered_address.province == Province.MUKDAHAN
+    assert registered_address.postal_code == '49000'
+
+def test_should_create_current_Address_is_valid():
+    current_address = Address(  # ตั้งอยู่ที่ 173 ถนนดินสอ แขวงเสาชิงช้า เขตพระนคร กรุงเทพมหานคร 10200
+        house_number='173',
+        street='ดินสอ',
+        sub_district='เสาชิงช้า',
+        district='พระนคร',
+        province=Province.BANGKOK,
+        postal_code='10200'
+    )
+    assert current_address.house_number == '173'
+    assert current_address.street == 'ดินสอ'
+    assert current_address.sub_district == 'เสาชิงช้า'
+    assert current_address.district == 'พระนคร'
+    assert current_address.province == Province.BANGKOK
+    assert current_address.postal_code == '10200'
+
+def test_should_raise_error_when_province_is_invalid_NotInEnum():
+    with raises(ValueError):
+        Address(
+            house_number='10',
+            street='วิวิธสุรการ',
+            sub_district='มุกดาหาร',
+            district='เมือง',
+            province='มุกดา',
+            postal_code='49000'
+        )
+
+def test_should_raise_error_when_postal_code_is_invalid_str_over_5():
+    with raises(ValueError):
+        registered_address = Address(
+            house_number='10',
+            street='วิวิธสุรการ',
+            sub_district='มุกดาหาร',
+            district='เมือง',
+            province=Province.MUKDAHAN,
+            postal_code='49000dfg'
+        )
+def test_should_create_Address_when_without_street_is_valid():
+    address = Address(
+        house_number='10',
+        street=None,
+        sub_district='มกดาหาร',
+        district='เมือง',
+        province=Province.MUKDAHAN,
+        postal_code='49000'
+    )
+    assert address.street is None
