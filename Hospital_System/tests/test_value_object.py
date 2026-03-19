@@ -218,3 +218,23 @@ def test_should_raise_error_when_Weight_is_negative():
     with raises(ValueError):
         Weight(value=-1)
 
+# ส่วนของ VO Height เทสส่วนสูง
+def test_should_create_Height_is_valid():
+    height = Height(value=80)
+    assert height == Height(value=80)
+
+def test_should_raise_error_when_Height_over_of_range():
+    with raises(ValueError):
+        Height(value=301)
+
+def test_should_raise_error_when_Height_lower_of_range():
+    with raises(ValueError):
+        Height(value=0.1)
+
+def test_should_raise_error_when_Height_input_str():
+    with raises(ValueError):
+        Height(value='สิบ')
+
+def test_should_raise_error_when_Height_is_negative():
+    with raises(ValueError):
+        Height(value=-1)

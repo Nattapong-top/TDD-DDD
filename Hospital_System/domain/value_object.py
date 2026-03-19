@@ -96,3 +96,5 @@ class Weight(DomainValueObject):
     value: float = Field(..., ge=0.2, le=300)
 
 
+class Height(DomainValueObject):
+    value: float = Field(..., ge=30, le=250)
