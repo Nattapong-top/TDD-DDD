@@ -3,7 +3,8 @@ from pydantic import ValidationError
 from pytest import raises, fixture, approx
 from datetime import date
 from Hospital_System.domain.value_object import (
-    Name, PhoneNumber, DateOfBirth, Address, Province, PatientRights, Rights, BloodPressure, Weight, Height)
+    Name, PhoneNumber, DateOfBirth, Address, Province, PatientRights, Rights, BloodPressure, Weight, Height,
+    Temperature)
 
 
 # ส่วนของ VO Name เทสชื่อและนามสกุล
@@ -238,3 +239,24 @@ def test_should_raise_error_when_Height_input_str():
 def test_should_raise_error_when_Height_is_negative():
     with raises(ValueError):
         Height(value=-1)
+
+# ส่วนของ VO Temperature เทสอุณหภูมิร่างกาย
+def test_should_create_Temperature_is_valid():
+    temp = Temperature(value=35.0)
+    assert temp == Temperature(value=35)
+
+def test_should_raise_error_when_Temperature_over_of_range():
+    with raises(ValueError):
+        Temperature(value=301)
+
+def test_should_raise_error_when_Temperature_lower_of_range():
+    with raises(ValueError):
+        Temperature(value=0.1)
+
+def test_should_raise_error_when_Temperature_input_str():
+    with raises(ValueError):
+        Temperature(value='สิบ')
+
+def test_should_raise_error_when_Temperature_is_negative():
+    with raises(ValueError):
+        Temperature(value=-1)
