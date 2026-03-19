@@ -4,7 +4,7 @@ from pytest import raises, fixture, approx
 from datetime import date
 from Hospital_System.domain.value_object import (
     Name, PhoneNumber, DateOfBirth, Address, Province, PatientRights, Rights, BloodPressure, Weight, Height,
-    Temperature)
+    Temperature, DomainValueObject, VitalSigns)
 
 
 # ส่วนของ VO Name เทสชื่อและนามสกุล
@@ -260,3 +260,42 @@ def test_should_raise_error_when_Temperature_input_str():
 def test_should_raise_error_when_Temperature_is_negative():
     with raises(ValueError):
         Temperature(value=-1)
+
+@fixture
+def vital_signs() -> VitalSigns:
+    return VitalSigns(
+        blood_pressure=BloodPressure(systolic=120, diastolic=80),
+        weight=Weight(value=80),
+        height=Height(value=177),
+        temperature=Temperature(value=39.0),
+        symptom='น้ำหมูกไหล ปวดหัว ตัวร้อน หนาวสั่น'
+    )
+
+def test_should_create_VitalSigns_is_valid(vital_signs):
+    assert vital_signs == VitalSigns(
+        blood_pressure=BloodPressure(systolic=120, diastolic=80),
+        weight=Weight(value=80),
+        height=Height(value=177),
+        temperature=Temperature(value=39.0),
+        symptom='น้ำหมูกไหล ปวดหัว ตัวร้อน หนาวสั่น'
+    )
+
+def test_should_raise_error_when_VitalSigns_symptom_empty_and_whitespace():
+    with raises(ValueError):
+        VitalSigns(
+        blood_pressure=BloodPressure(systolic=120, diastolic=80),
+        weight=Weight(value=80),
+        height=Height(value=177),
+        temperature=Temperature(value=39.0),
+        symptom='      '
+        )
+
+def test_should_raise_error_when_VitalSigns_symptom_too_long():
+    with raises(ValueError):
+        VitalSigns(
+            blood_pressure=BloodPressure(systolic=120, diastolic=80),
+            weight=Weight(value=80),
+            height=Height(value=177),
+            temperature=Temperature(value=39.0),
+            symptom='น้ำหมูกไหล ปวดหัว ตัวร้อน หนาวสั่น'*20
+        )

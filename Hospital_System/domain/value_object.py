@@ -101,3 +101,17 @@ class Height(DomainValueObject):
 
 class Temperature(DomainValueObject):
     value: float = Field(..., ge=35, le=42)
+
+class VitalSigns(DomainValueObject):
+    blood_pressure: BloodPressure
+    weight: Weight
+    height: Height
+    temperature: Temperature
+    symptom: str = Field(..., min_length=1, max_length=50)
+
+    @field_validator('symptom')
+    @classmethod
+    def _must_not_be_blank(cls, v: str) -> str:
+        if v.strip() == '':
+            raise ValueError('กรุณาบอกอาการด้วย')
+        return v
