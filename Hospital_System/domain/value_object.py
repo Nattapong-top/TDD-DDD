@@ -27,6 +27,11 @@ class PaymentType(Enum):
     QR_PAYMENT = 'คิวอาร์โค๊ด'
 
 
+class NationalID(DomainValueObject):
+    id: str = Field(..., min_length=13, max_length=13, pattern=r'^\d{13}$')
+
+
+
 class Name(DomainValueObject):
     value: str = Field(..., min_length=1, max_length=50, pattern=r'^[^\d]+$')
 

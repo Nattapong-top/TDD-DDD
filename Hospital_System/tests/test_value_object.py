@@ -7,7 +7,7 @@ from pytest import raises, fixture
 from Hospital_System.domain.value_object import (
     Name, PhoneNumber, DateOfBirth, Address, Province, PatientRights, Rights,
     BloodPressure, Weight, Height, Temperature, VitalSigns,
-    Diagnosis, MedicineInfo, Payment, PaymentType)
+    Diagnosis, MedicineInfo, Payment, PaymentType, NationalID)
 
 
 # ส่วนของ VO Name เทสชื่อและนามสกุล
@@ -469,3 +469,28 @@ def test_create_Payment_with_cash_is_valid():
 def test_create_Payment_with_QR_PAYMANT_is_valid():
     payment = Payment(amount=Decimal('100.00'), payment_type=PaymentType.QR_PAYMENT)
     assert payment.payment_type == PaymentType.QR_PAYMENT
+
+def test_create_NationalID_is_valid():
+    national_id = NationalID(id='1234567890123')
+    assert national_id == NationalID(id='1234567890123')
+
+def test_should_raise_error_when_NationalID_empty_and_whitespace():
+    with raises(ValueError):
+        NationalID(id='             ')
+
+def test_should_raise_error_when_NationalID_too_long():
+    with raises(ValueError):
+        NationalID(id='12345678901231')
+
+def test_should_raise_error_when_NationalID_too_short():
+    with raises(ValueError):
+        NationalID(id='123456789012')
+
+def test_should_raise_error_when_NationalID_is_str():
+    with raises(ValueError):
+        NationalID(id='123456789012O')
+
+
+def test_should_raise_error_when_NationalID_is_negative():
+    with raises(ValueError):
+        NationalID(id='-234567890124')
