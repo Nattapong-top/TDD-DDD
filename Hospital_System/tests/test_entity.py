@@ -1,6 +1,6 @@
 import uuid
+from pytest import fixture, raises
 
-from _pytest.fixtures import fixture
 
 from Hospital_System.domain.value_object import (
     Name, PhoneNumber, DateOfBirth, Address, Province, PatientRights, NationalID, Rights)
@@ -42,3 +42,11 @@ def test_create_patient_is_validate(patient):
     assert patient.first_name.value == 'นนทพัฒน์'
     assert patient.phone_number == PhoneNumber(value='0123456789')
     assert patient.right == Rights(rights_type=PatientRights.SOCIAL_SECURITY)
+
+def test_should_raise_error_when_update_patient_id(patient):
+    with raises(ValueError):
+        patient.id = uuid.uuid4()
+
+def test_should_raise_error_when_update_patient_nation_id(patient):
+    with raises(ValueError):
+        patient.nation_id = NationalID(id='1111111111111')
