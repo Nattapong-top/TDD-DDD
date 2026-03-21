@@ -1,13 +1,30 @@
-from datetime import datetime, date, timedelta
+from datetime import date
 from decimal import Decimal
 from enum import Enum
-from typing import Tuple, Optional
+from typing import Optional
 
 from pydantic import BaseModel, Field, field_validator, ConfigDict, model_validator
 
 
 class DomainValueObject(BaseModel):
     model_config = ConfigDict(frozen=True)
+
+
+class Province(Enum):
+    BANGKOK = "กรุงเทพมหานคร"
+    CHIANG_MAI = "เชียงใหม่"
+    PHUKET = "ภูเก็ต"
+    KHON_KAEN = "ขอนแก่น"
+    CHONBURI = "ชลบุรี"
+    MUKDAHAN = 'มุกดาหาร'
+
+
+class PaymentType(Enum):
+    GOLD_CARD = 'บัตรทอง'
+    SOCIAL_SECURITY = 'ประกันสังคม'
+    COMPANY_INSURANCE = 'ประกันบริษัท'
+    CASH = 'เงินสด'
+    QR_PAYMENT = 'คิวอาร์โค๊ด'
 
 
 class Name(DomainValueObject):
@@ -57,17 +74,8 @@ class DateOfBirth(DomainValueObject):
 
         age_in_years = date.today().year - dob.year
         if age_in_years > 150:
-            raise ValueError('อายุห้ามเกิดน 150 ปี')
+            raise ValueError('อายุห้ามเกิน 150 ปี')
         return self
-
-
-class Province(Enum):
-    BANGKOK = "กรุงเทพมหานคร"
-    CHIANG_MAI = "เชียงใหม่"
-    PHUKET = "ภูเก็ต"
-    KHON_KAEN = "ขอนแก่น"
-    CHONBURI = "ชลบุรี"
-    MUKDAHAN = 'มุกดาหาร'
 
 
 class Address(DomainValueObject):
@@ -143,12 +151,6 @@ class Diagnosis(DomainValueObject):
             raise ValueError('กรุณากรอกข้อมูลด้วยครับ')
         return v
 
-class PaymentType(Enum):
-        GOLD_CARD = 'บัตรทอง'
-        SOCIAL_SECURITY = 'ประกันสังคม'
-        COMPANY_INSURANCE = 'ประกันบริษัท'
-        CASH = 'เงินสด'
-        QR_PAYMENT = 'คิวอาร์โค๊ด'
 
 class Payment(DomainValueObject):
     amount: Decimal = Field(..., ge=Decimal('0.01'), le=Decimal('10000000'))
