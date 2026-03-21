@@ -127,3 +127,16 @@ class Diagnosis(DomainValueObject):
         if v.strip() == '':
             raise ValueError('กรุณากรอกข้อมูลด้วยครับ')
         return v
+
+
+class MedicineInfo(DomainValueObject):
+    name: str = Field(..., min_length=1, max_length=100)
+    strength: str = Field(..., min_length=1, max_length=100)
+    frequency: str = Field(..., min_length=1, max_length=100)
+
+    @field_validator('name','strength', 'frequency')
+    @classmethod
+    def _must_not_be_blank(cls, v: str) -> str:
+        if v.strip() == '':
+            raise ValueError('กรุณากรอกข้อมูลด้วยครับ')
+        return v

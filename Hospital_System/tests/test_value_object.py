@@ -4,7 +4,7 @@ from pytest import raises, fixture, approx
 from datetime import date
 from Hospital_System.domain.value_object import (
     Name, PhoneNumber, DateOfBirth, Address, Province, PatientRights, Rights, BloodPressure, Weight, Height,
-    Temperature, DomainValueObject, VitalSigns, Diagnosis)
+    Temperature, DomainValueObject, VitalSigns, Diagnosis, MedicineInfo)
 
 
 # ส่วนของ VO Name เทสชื่อและนามสกุล
@@ -400,3 +400,35 @@ def test_should_raise_error_when_Diagnosis_max_length():
         treatment='พักผ่อน ออกกำลังกาย'*30,
         medicine_prescribed=[]  # ไม่มียา
     )
+
+
+# ส่วนของ VO MedicineInfo เทสข้อมูลยา
+def test_should_create_MedicineInfo_is_valid():
+    medicine = MedicineInfo(
+        name='Paracetamol',
+        strength='500mg',
+        frequency='วันละ 3 ครั้ง หลักอาหาร'
+    )
+    assert medicine == MedicineInfo(
+        name='Paracetamol',
+        strength='500mg',
+        frequency='วันละ 3 ครั้ง หลักอาหาร'
+    )
+
+def test_should_raise_error_when_MedicineInfo_empty_and_whitespace():
+    with raises(ValueError):
+        MedicineInfo(
+            name='    ',
+            strength='    ',
+            frequency='    ',
+        )
+
+def test_should_raise_error_when_MedicineInfo_too_long():
+    with raises(ValueError):
+        MedicineInfo(
+            name='Paracetamol'*100,
+            strength='500mg',
+            frequency='วันละ 3 ครั้ง',
+        )
+
+
