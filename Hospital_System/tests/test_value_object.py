@@ -2,6 +2,7 @@
 from pydantic import ValidationError
 from pytest import raises, fixture, approx
 from datetime import date
+
 from Hospital_System.domain.value_object import (
     Name, PhoneNumber, DateOfBirth, Address, Province, PatientRights, Rights, BloodPressure, Weight, Height,
     Temperature, DomainValueObject, VitalSigns, Diagnosis, MedicineInfo)
@@ -354,13 +355,17 @@ def test_should_raise_error_when_VitalSigns_symptom_too_long():
         )
 
 
-# ส่วนของ VO Diagnosis_ เทสคำวินิจฉัย
+# ส่วนของ VO Diagnosis เทสคำวินิจฉัย
 @fixture
 def diagnosis() -> Diagnosis:
     return Diagnosis(
         disease='ไข้หวัดใหญ่',
         treatment='พักผ่อนน ดิ่มน้ำมากๆ',
-        medicine_prescribed=['Paracetamol', 'Loratadine']
+        medicine_prescribed=[MedicineInfo(
+            name='Paracetamol',
+            strength='500mg',
+            frequency='วันละ 3 ครั้ง หลักอาหาร'
+        )]
     )
 
 
@@ -368,7 +373,11 @@ def test_create_Diagnosis_is_valid(diagnosis):
     assert diagnosis == Diagnosis(
         disease='ไข้หวัดใหญ่',
         treatment='พักผ่อนน ดิ่มน้ำมากๆ',
-        medicine_prescribed=['Paracetamol', 'Loratadine']
+        medicine_prescribed=[MedicineInfo(
+            name='Paracetamol',
+            strength='500mg',
+            frequency='วันละ 3 ครั้ง หลักอาหาร'
+        )]
     )
 
 
@@ -377,7 +386,7 @@ def test_should_raise_error_when_Diagnosis_empty_and_whitespace():
         Diagnosis(
             disease='   ',
             treatment='   ',
-            medicine_prescribed=['Paracetamol', 'Loratadine']
+            medicine_prescribed=[]
         )
 
 
