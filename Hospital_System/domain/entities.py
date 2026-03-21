@@ -37,3 +37,6 @@ class Patient(DomainEntity):
     def update_phone_number(self, new_phone_number: PhoneNumber) -> None:
         self.phone_number = new_phone_number
 
+    def update_current_address(self, new_address: Address) -> None:
+        self.current_address = new_address
+

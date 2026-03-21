@@ -56,3 +56,15 @@ def test_should_update_patient_phone_number(patient):
     patient.update_phone_number(new_phone_number)
     assert patient.phone_number == new_phone_number
 
+def test_should_update_current_address(patient):
+    new_current_address = Address(# ตั้งอยู่ที่ 173 ถนนดินสอ แขวงเสาชิงช้า เขตพระนคร กรุงเทพมหานคร 10200
+            house_number='57',
+            street='อุดมสุข',
+            sub_district='บางนาเหนือ',
+            district='บางนา',
+            province=Province.BANGKOK,
+            postal_code='10260'
+        )
+    patient.update_current_address(new_current_address)
+    assert patient.current_address == new_current_address
+
