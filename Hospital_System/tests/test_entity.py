@@ -41,7 +41,7 @@ def test_create_patient_is_validate(patient):
     assert patient.nation_id.id == '1234567890123'
     assert patient.first_name.value == 'นนทพัฒน์'
     assert patient.phone_number == PhoneNumber(value='0123456789')
-    assert patient.right == Rights(rights_type=PatientRights.SOCIAL_SECURITY)
+    assert patient.rights == Rights(rights_type=PatientRights.SOCIAL_SECURITY)
 
 def test_should_raise_error_when_update_patient_id(patient):
     with raises(ValueError):
@@ -68,3 +68,7 @@ def test_should_update_current_address(patient):
     patient.update_current_address(new_current_address)
     assert patient.current_address == new_current_address
 
+def test_should_update_rights(patient):
+    new_rights = Rights(rights_type=PatientRights.COMPANY_INSURANCE)
+    patient.update_rights(new_rights)
+    assert patient.rights == new_rights
