@@ -32,7 +32,7 @@ def patient():
             province=Province.BANGKOK,
             postal_code='10200'
         ),
-        right=Rights(rights_type=PatientRights.SOCIAL_SECURITY)
+        rights=Rights(rights_type=PatientRights.SOCIAL_SECURITY)
     )
 
 def test_create_patient_is_validate(patient):
@@ -50,3 +50,9 @@ def test_should_raise_error_when_update_patient_id(patient):
 def test_should_raise_error_when_update_patient_nation_id(patient):
     with raises(ValueError):
         patient.nation_id = NationalID(id='1111111111111')
+
+def test_should_update_patient_phone_number(patient):
+    new_phone_number = PhoneNumber(value='0999999999')
+    patient.update_phone_number(new_phone_number)
+    assert patient.phone_number == new_phone_number
+

@@ -20,7 +20,7 @@ class Patient(DomainEntity):
     date_of_birth: DateOfBirth
     registered_address: Address
     current_address: Address
-    right: Rights
+    rights: Rights
 
     def __setattr__(self, name: str, value) -> None:
         # ป้องกันการเปลี่ยนค่า field ที่ห้ามแก้ไข
@@ -32,3 +32,8 @@ class Patient(DomainEntity):
 
         # ถ้าไม่ใช่ field ต้องห้าม → ให้ Pydantic จัดการต่อตามปกติ
         super().__setattr__(name, value)
+
+
+    def update_phone_number(self, new_phone_number: PhoneNumber) -> None:
+        self.phone_number = new_phone_number
+
