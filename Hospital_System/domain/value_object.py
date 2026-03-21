@@ -1,4 +1,5 @@
 from datetime import datetime, date, timedelta
+from decimal import Decimal
 from enum import Enum
 from typing import Tuple, Optional
 
@@ -142,4 +143,13 @@ class Diagnosis(DomainValueObject):
             raise ValueError('กรุณากรอกข้อมูลด้วยครับ')
         return v
 
+class PaymentType(Enum):
+        GOLD_CARD = 'บัตรทอง'
+        SOCIAL_SECURITY = 'ประกันสังคม'
+        COMPANY_INSURANCE = 'ประกันบริษัท'
+        CASH = 'เงินสด'
+        QR_PAYMENT = 'คิวอาร์โค๊ด'
 
+class Payment(DomainValueObject):
+    amount: Decimal = Field(..., ge=Decimal('0.01'), le=Decimal('10000000'))
+    payment_type: PaymentType

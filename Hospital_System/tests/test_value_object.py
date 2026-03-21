@@ -1,11 +1,13 @@
 # Unit Tests for Hospital_System
-from pydantic import ValidationError
-from pytest import raises, fixture, approx
 from datetime import date
+from decimal import Decimal
+
+from pytest import raises, fixture
 
 from Hospital_System.domain.value_object import (
-    Name, PhoneNumber, DateOfBirth, Address, Province, PatientRights, Rights, BloodPressure, Weight, Height,
-    Temperature, DomainValueObject, VitalSigns, Diagnosis, MedicineInfo)
+    Name, PhoneNumber, DateOfBirth, Address, Province, PatientRights, Rights,
+    BloodPressure, Weight, Height, Temperature, VitalSigns,
+    Diagnosis, MedicineInfo, Payment, PaymentType)
 
 
 # ส่วนของ VO Name เทสชื่อและนามสกุล
@@ -441,3 +443,29 @@ def test_should_raise_error_when_MedicineInfo_too_long():
         )
 
 
+# ส่วนของ VO Payment เทสการจ่ายเงิน
+def test_should_Payment_is_valid():
+    payment = Payment(amount=Decimal('500.11'), payment_type=PaymentType.SOCIAL_SECURITY)
+    result = payment.amount / payment.amount
+    assert payment == Payment(amount=Decimal('500.11'), payment_type=PaymentType.SOCIAL_SECURITY)
+    assert result == Decimal('1')
+
+def test_should_raise_error_when_Payment_is_negative():
+    with raises(ValueError):
+        Payment(amount=Decimal('-0.1'), payment_type=PaymentType.SOCIAL_SECURITY)
+
+def test_should_raise_error_when_Payment_is_zero():
+    with raises(ValueError):
+        Payment(amount=Decimal('0.0'), payment_type=PaymentType.SOCIAL_SECURITY)
+
+def test_should_raise_error_when_Payment_is_over_limit_10_000_000():
+    with raises(ValueError):
+        Payment(amount=Decimal('10000000.01'), payment_type=PaymentType.SOCIAL_SECURITY)
+
+def test_create_Payment_with_cash_is_valid():
+    payment = Payment(amount=Decimal('1000.00'), payment_type=PaymentType.CASH)
+    assert payment.payment_type == PaymentType.CASH
+
+def test_create_Payment_with_QR_PAYMANT_is_valid():
+    payment = Payment(amount=Decimal('100.00'), payment_type=PaymentType.QR_PAYMENT)
+    assert payment.payment_type == PaymentType.QR_PAYMENT
