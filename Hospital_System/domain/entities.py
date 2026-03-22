@@ -8,7 +8,10 @@ from Hospital_System.domain.value_object import (
 
 
 class DomainEntity(BaseModel):
-    model_config = ConfigDict(frozen=False)
+    model_config = ConfigDict(
+        frozen=False,
+        validate_assignment=True
+    )
 
 
 class Patient(DomainEntity):

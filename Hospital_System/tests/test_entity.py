@@ -73,6 +73,10 @@ def test_should_update_rights(patient):
     patient.update_rights(new_rights)
     assert patient.rights == new_rights
 
+def test_should_raise_error_when_update_rights_invalid_type(patient):
+    with raises(ValueError):
+        patient.update_rights(PhoneNumber(value='0123456789'))
+
 def test_should_update_first_name(patient):
     new_first_name = Name(value='นันทวัน')
     patient.update_first_name(new_first_name)
