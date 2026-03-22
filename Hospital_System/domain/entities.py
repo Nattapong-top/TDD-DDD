@@ -1,10 +1,11 @@
-from dataclasses import Field
+from pydantic import Field
 from uuid import UUID, uuid4
 
-from pydantic import BaseModel, ConfigDict, model_validator
+from pydantic import BaseModel, ConfigDict
 
 from Hospital_System.domain.value_object import (
-    Name, PhoneNumber, DateOfBirth, Address, NationalID, Rights)
+    Name, PhoneNumber, DateOfBirth, Address, NationalID, Rights,
+    LicenseNumber, MedicalSpecialty)
 
 
 class DomainEntity(BaseModel):
@@ -52,3 +53,10 @@ class Patient(DomainEntity):
     def update_last_name(self, new_last_name: Name) -> None:
         self.last_name = new_last_name
 
+class Doctor(DomainEntity):
+    id: UUID = Field(default_factory=uuid4)
+    license_number: LicenseNumber
+    first_name: Name
+    last_name: Name
+    phone_number: PhoneNumber
+    medical_specialty: MedicalSpecialty

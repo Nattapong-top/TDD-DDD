@@ -3,9 +3,11 @@ from pytest import fixture, raises
 
 
 from Hospital_System.domain.value_object import (
-    Name, PhoneNumber, DateOfBirth, Address, Province, PatientRights, NationalID, Rights)
+    Name, PhoneNumber, DateOfBirth, Address, Province,
+    PatientRights, NationalID, Rights, LicenseNumber,
+    MedicalSpecialty, Specialization,)
 
-from Hospital_System.domain.entities import Patient
+from Hospital_System.domain.entities import Patient, Doctor
 
 @fixture
 def patient():
@@ -86,3 +88,19 @@ def test_should_update_last_name(patient):
     new_last_name = Name(value='คนมั่งคั่ง')
     patient.update_last_name(new_last_name)
     assert patient.last_name == new_last_name
+
+# ส่วนทดสอบ Entity Doctor
+@fixture
+def doctor():
+    return Doctor(
+        license_number=LicenseNumber(id='ว.11231'),
+        first_name=Name(value='รักษาหาย'),
+        last_name=Name(value='คนหายป่วย'),
+        phone_number=PhoneNumber(value='0123456789'),
+        medical_specialty=MedicalSpecialty(value=Specialization.INTERNAL_MEDICINE)
+    )
+
+def test_should_create_Doctor(doctor):
+    assert doctor.first_name == Name(value='รักษาหาย')
+    assert doctor.license_number == LicenseNumber(id='ว.11231')
+    assert doctor.medical_specialty == MedicalSpecialty(value=Specialization.INTERNAL_MEDICINE)
