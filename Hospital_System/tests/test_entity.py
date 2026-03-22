@@ -72,3 +72,13 @@ def test_should_update_rights(patient):
     new_rights = Rights(rights_type=PatientRights.COMPANY_INSURANCE)
     patient.update_rights(new_rights)
     assert patient.rights == new_rights
+
+def test_should_update_first_name(patient):
+    new_first_name = Name(value='นันทวัน')
+    patient.update_first_name(new_first_name)
+    assert patient.first_name == new_first_name
+
+def test_should_update_last_name(patient):
+    new_last_name = Name(value='คนมั่งคั่ง')
+    patient.update_last_name(new_last_name)
+    assert patient.last_name == new_last_name

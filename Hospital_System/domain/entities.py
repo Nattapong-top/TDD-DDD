@@ -42,3 +42,9 @@ class Patient(DomainEntity):
 
     def update_rights(self, new_rights: Rights) -> None:
         self.rights = new_rights
+
+    def update_first_name(self, new_first_name: Name) -> None:
+        self.first_name = new_first_name
+
+    def update_last_name(self, new_last_name: Name) -> None:
+        self.last_name = new_last_name
