@@ -60,3 +60,14 @@ class Doctor(DomainEntity):
     last_name: Name
     phone_number: PhoneNumber
     medical_specialty: MedicalSpecialty
+
+    def __setattr__(self, name: str, value) -> None:
+        # ป้องกันการเปลี่ยนค่า field ที่ห้ามแก้ไข
+        # รันทุกครั้งที่มีการ set ค่า field ใดๆ ใน object นี้
+        # hasattr เช็คว่า field นั้นมีค่าอยู่แล้วหรือยัง
+        # (ถ้ายังไม่มี = กำลังสร้างครั้งแรก → ให้ผ่าน)
+        if name in ('id', 'license_number') and hasattr(self, name):
+            raise ValueError(f'ห้ามเปลี่ยน {name} ครับ')
+
+        # ถ้าไม่ใช่ field ต้องห้าม → ให้ Pydantic จัดการต่อตามปกติ
+        super().__setattr__(name, value)

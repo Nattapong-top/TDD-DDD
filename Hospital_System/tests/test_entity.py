@@ -104,3 +104,11 @@ def test_should_create_Doctor(doctor):
     assert doctor.first_name == Name(value='รักษาหาย')
     assert doctor.license_number == LicenseNumber(id='ว.11231')
     assert doctor.medical_specialty == MedicalSpecialty(value=Specialization.INTERNAL_MEDICINE)
+
+def test_should_raise_error_when_update_id_doctor(doctor):
+    with raises(ValueError):
+        doctor.id = uuid.uuid4()
+
+def test_should_raise_error_when_update_License_number_doctor(doctor):
+    with raises(ValueError):
+        doctor.license_number = LicenseNumber(id='ว.11231')

@@ -27,6 +27,15 @@ class PaymentType(Enum):
     QR_PAYMENT = 'คิวอาร์โค๊ด'
 
 
+class Specialization(Enum):
+    INTERNAL_MEDICINE = "อายุรกรรม"
+    SURGERY = "ศัลยกรรม"
+    PEDIATRICS = "กุมารเวชศาสตร์"
+    ORTHOPEDICS = "ออร์โธปิดิกส์"
+    OBSTETRICS = "สูติกรรม"
+    CARDIOLOGY = "โรคหัวใจ"
+
+
 class NationalID(DomainValueObject):
     id: str = Field(..., min_length=13, max_length=13, pattern=r'^\d{13}$')
 
@@ -163,15 +172,6 @@ class Payment(DomainValueObject):
 
 class LicenseNumber(DomainValueObject):
     id: str = Field(..., min_length=7, max_length=7, pattern=r'^ว\.\d{5}$')
-
-class Specialization(Enum):
-    INTERNAL_MEDICINE = "อายุรกรรม"
-    SURGERY = "ศัลยกรรม"
-    PEDIATRICS = "กุมารเวชศาสตร์"
-    ORTHOPEDICS = "ออร์โธปิดิกส์"
-    OBSTETRICS = "สูติกรรม"
-    CARDIOLOGY = "โรคหัวใจ"
-
 
 class MedicalSpecialty(DomainValueObject):
     value: Specialization
