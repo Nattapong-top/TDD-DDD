@@ -7,7 +7,8 @@ from pytest import raises, fixture
 from Hospital_System.domain.value_object import (
     Name, PhoneNumber, DateOfBirth, Address, Province, PatientRights, Rights,
     BloodPressure, Weight, Height, Temperature, VitalSigns,
-    Diagnosis, MedicineInfo, Payment, PaymentType, NationalID, LicenseNumber)
+    Diagnosis, MedicineInfo, Payment, PaymentType, NationalID, LicenseNumber,
+    Specialization, MedicalSpecialty)
 
 
 # ส่วนของ VO Name เทสชื่อและนามสกุล
@@ -510,3 +511,11 @@ def test_should_raise_error_when_LicenseNumber_too_short():
 def test_should_raise_error_when_LicenseNumber_is_str():
     with raises(ValueError):
         LicenseNumber(id='ว.1234X')
+
+def test_should_create_MedicalSpecialty_in_Enum_is_valid():
+    spacial = MedicalSpecialty(value=Specialization.INTERNAL_MEDICINE)
+    assert spacial == MedicalSpecialty(value=Specialization.INTERNAL_MEDICINE)
+
+def test_should_raises_error_when_MedicalSpecialty_is_invalid():
+    with raises(ValueError):
+        MedicalSpecialty(value='test')
