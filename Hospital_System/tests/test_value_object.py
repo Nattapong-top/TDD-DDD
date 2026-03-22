@@ -7,7 +7,7 @@ from pytest import raises, fixture
 from Hospital_System.domain.value_object import (
     Name, PhoneNumber, DateOfBirth, Address, Province, PatientRights, Rights,
     BloodPressure, Weight, Height, Temperature, VitalSigns,
-    Diagnosis, MedicineInfo, Payment, PaymentType, NationalID)
+    Diagnosis, MedicineInfo, Payment, PaymentType, NationalID, LicenseNumber)
 
 
 # ส่วนของ VO Name เทสชื่อและนามสกุล
@@ -494,3 +494,19 @@ def test_should_raise_error_when_NationalID_is_str():
 def test_should_raise_error_when_NationalID_is_negative():
     with raises(ValueError):
         NationalID(id='-234567890124')
+
+def test_should_create_LicenseNumber_doctor_is_valid():
+    license_number = LicenseNumber(id='ว.12345')
+    assert license_number == LicenseNumber(id='ว.12345')
+
+def test_should_raise_error_when_LicenseNumber_too_long():
+    with raises(ValueError):
+        LicenseNumber(id='ว.123456')
+
+def test_should_raise_error_when_LicenseNumber_too_short():
+    with raises(ValueError):
+        LicenseNumber(id='.123456')
+
+def test_should_raise_error_when_LicenseNumber_is_str():
+    with raises(ValueError):
+        LicenseNumber(id='ว.1234X')

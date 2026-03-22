@@ -51,3 +51,4 @@ class Patient(DomainEntity):
 
     def update_last_name(self, new_last_name: Name) -> None:
         self.last_name = new_last_name
+

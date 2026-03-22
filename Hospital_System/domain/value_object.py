@@ -160,3 +160,6 @@ class Diagnosis(DomainValueObject):
 class Payment(DomainValueObject):
     amount: Decimal = Field(..., ge=Decimal('0.01'), le=Decimal('10000000'))
     payment_type: PaymentType
+
+class LicenseNumber(DomainValueObject):
+    id: str = Field(..., min_length=7, max_length=7, pattern=r'^ว\.\d{5}$')
