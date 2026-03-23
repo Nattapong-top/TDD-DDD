@@ -1,13 +1,15 @@
 import uuid
+from datetime import date
+
 from pytest import fixture, raises
 
 
 from Hospital_System.domain.value_object import (
     Name, PhoneNumber, DateOfBirth, Address, Province,
     PatientRights, NationalID, Rights, LicenseNumber,
-    MedicalSpecialty, Specialization,)
+    MedicalSpecialty, Specialization, Number, QueueStatus)
 
-from Hospital_System.domain.entities import Patient, Doctor
+from Hospital_System.domain.entities import Patient, Doctor, Queue
 
 @fixture
 def patient():
@@ -137,3 +139,17 @@ def test_should_update_medical_specialty(doctor):
 def test_should_raise_error_when_update_medical_specialty_invalid_type(doctor):
     with raises(ValueError):
         doctor.update_medical_specialty(LicenseNumber(id='ว.11231'))
+
+# ส่วนทดสอบ Entity Queue
+@fixture
+def queue(patient):
+    return Queue(
+        patient_id=patient.id,
+        queue_number=Number(id=1),
+        queue_date=date.today(),
+        status=QueueStatus.WAITING
+    )
+def test_should_create_queue_entity_is_valid(patient, queue):
+    assert queue.patient_id == patient.id
+    assert queue.queue_date == date.today()
+    assert queue.status == QueueStatus.WAITING

@@ -3,7 +3,8 @@ from decimal import Decimal
 from enum import Enum
 from typing import Optional
 
-from pydantic import BaseModel, Field, field_validator, ConfigDict, model_validator
+from pydantic import (
+    BaseModel, Field, field_validator, ConfigDict, model_validator)
 
 
 class DomainValueObject(BaseModel):
@@ -36,9 +37,15 @@ class Specialization(Enum):
     CARDIOLOGY = "โรคหัวใจ"
 
 
+class QueueStatus(Enum):
+    WAITING = 'รอ'
+    IN_PROGRESS = 'กำลังพบหมอ'
+    COMPLETED = 'เสร็จแล้ว'
+    CANCELLED = 'ยกเลิก'
+
+
 class NationalID(DomainValueObject):
     id: str = Field(..., min_length=13, max_length=13, pattern=r'^\d{13}$')
-
 
 
 class Name(DomainValueObject):
@@ -106,6 +113,7 @@ class PatientRights(Enum):
     SOCIAL_SECURITY = 'ประกันสังคม'
     COMPANY_INSURANCE = 'ประกันบริษัท'
 
+
 class Rights(DomainValueObject):
     rights_type: PatientRights
 
@@ -122,8 +130,10 @@ class Weight(DomainValueObject):
 class Height(DomainValueObject):
     value: float = Field(..., ge=30, le=250)
 
+
 class Temperature(DomainValueObject):
     value: float = Field(..., ge=35, le=42)
+
 
 class VitalSigns(DomainValueObject):
     blood_pressure: BloodPressure
@@ -145,7 +155,7 @@ class MedicineInfo(DomainValueObject):
     strength: str = Field(..., min_length=1, max_length=100)
     frequency: str = Field(..., min_length=1, max_length=100)
 
-    @field_validator('name','strength', 'frequency')
+    @field_validator('name', 'strength', 'frequency')
     @classmethod
     def _must_not_be_blank(cls, v: str) -> str:
         if v.strip() == '':
@@ -170,8 +180,14 @@ class Payment(DomainValueObject):
     amount: Decimal = Field(..., ge=Decimal('0.01'), le=Decimal('10000000'))
     payment_type: PaymentType
 
+
 class LicenseNumber(DomainValueObject):
     id: str = Field(..., min_length=7, max_length=7, pattern=r'^ว\.\d{5}$')
 
+
 class MedicalSpecialty(DomainValueObject):
     value: Specialization
+
+
+class Number(DomainValueObject):
+    id: int = Field(..., ge=1, le=500)

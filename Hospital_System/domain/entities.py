@@ -1,3 +1,4 @@
+from datetime import date
 from pydantic import Field
 from uuid import UUID, uuid4
 
@@ -5,7 +6,7 @@ from pydantic import BaseModel, ConfigDict
 
 from Hospital_System.domain.value_object import (
     Name, PhoneNumber, DateOfBirth, Address, NationalID, Rights,
-    LicenseNumber, MedicalSpecialty)
+    LicenseNumber, MedicalSpecialty, Number, QueueStatus)
 
 
 class DomainEntity(BaseModel):
@@ -37,7 +38,6 @@ class Patient(DomainEntity):
         # ถ้าไม่ใช่ field ต้องห้าม → ให้ Pydantic จัดการต่อตามปกติ
         super().__setattr__(name, value)
 
-
     def update_phone_number(self, new_phone_number: PhoneNumber) -> None:
         self.phone_number = new_phone_number
 
@@ -52,6 +52,7 @@ class Patient(DomainEntity):
 
     def update_last_name(self, new_last_name: Name) -> None:
         self.last_name = new_last_name
+
 
 class Doctor(DomainEntity):
     id: UUID = Field(default_factory=uuid4)
@@ -84,3 +85,10 @@ class Doctor(DomainEntity):
     def update_medical_specialty(self, new_medical_specialty: MedicalSpecialty) -> None:
         self.medical_specialty = new_medical_specialty
 
+
+class Queue(DomainEntity):
+    id: UUID = Field(default_factory=uuid4)
+    patient_id: UUID
+    queue_number: Number
+    queue_date: date
+    status: QueueStatus
