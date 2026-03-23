@@ -128,3 +128,12 @@ def test_should_update_phone_number_doctor(doctor):
     new_phone_number_doctor = PhoneNumber(value='0888888888')
     doctor.update_phone_number(new_phone_number_doctor)
     assert doctor.phone_number == new_phone_number_doctor
+
+def test_should_update_medical_specialty(doctor):
+    new_medical_specialty = MedicalSpecialty(value=Specialization.CARDIOLOGY)
+    doctor.update_medical_specialty(new_medical_specialty)
+    assert doctor.medical_specialty == new_medical_specialty
+
+def test_should_raise_error_when_update_medical_specialty_invalid_type(doctor):
+    with raises(ValueError):
+        doctor.update_medical_specialty(LicenseNumber(id='ว.11231'))
