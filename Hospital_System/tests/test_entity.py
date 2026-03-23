@@ -112,3 +112,15 @@ def test_should_raise_error_when_update_id_doctor(doctor):
 def test_should_raise_error_when_update_License_number_doctor(doctor):
     with raises(ValueError):
         doctor.license_number = LicenseNumber(id='ว.11231')
+
+
+def test_should_update_first_name_doctor(doctor):
+    new_first_name_doctor = Name(value='รักษาดี')
+    doctor.update_first_name(new_first_name_doctor)
+    assert doctor.first_name == Name(value='รักษาดี')
+
+def test_should_update_last_name_doctor(doctor):
+    new_last_name_doctor = Name(value='คนสุขภาพดี')
+    doctor.update_last_name(new_last_name_doctor)
+    assert doctor.last_name == new_last_name_doctor
+

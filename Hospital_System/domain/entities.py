@@ -71,3 +71,10 @@ class Doctor(DomainEntity):
 
         # ถ้าไม่ใช่ field ต้องห้าม → ให้ Pydantic จัดการต่อตามปกติ
         super().__setattr__(name, value)
+
+    def update_first_name(self, new_first_name: Name) -> None:
+        self.first_name = new_first_name
+
+    def update_last_name(self, new_last_name: Name) -> None:
+        self.last_name = new_last_name
+
