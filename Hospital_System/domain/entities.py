@@ -78,3 +78,8 @@ class Doctor(DomainEntity):
     def update_last_name(self, new_last_name: Name) -> None:
         self.last_name = new_last_name
 
+    def update_phone_number(self, new_phone_number: PhoneNumber) -> None:
+        self.phone_number = new_phone_number
+
+
+

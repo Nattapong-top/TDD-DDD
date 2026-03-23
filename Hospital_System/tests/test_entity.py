@@ -124,3 +124,7 @@ def test_should_update_last_name_doctor(doctor):
     doctor.update_last_name(new_last_name_doctor)
     assert doctor.last_name == new_last_name_doctor
 
+def test_should_update_phone_number_doctor(doctor):
+    new_phone_number_doctor = PhoneNumber(value='0888888888')
+    doctor.update_phone_number(new_phone_number_doctor)
+    assert doctor.phone_number == new_phone_number_doctor
