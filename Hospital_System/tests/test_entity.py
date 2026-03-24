@@ -3,23 +3,23 @@ from datetime import date
 
 from pytest import fixture, raises
 
-
+from Hospital_System.domain.entities import Patient, Doctor, Queue
 from Hospital_System.domain.value_object import (
     Name, PhoneNumber, DateOfBirth, Address, Province,
     PatientRights, NationalID, Rights, LicenseNumber,
-    MedicalSpecialty, Specialization, Number, QueueStatus)
+    MedicalSpecialty, Specialization, Number, QueueStatus,
+    VitalSigns, BloodPressure, Weight, Height, Temperature)
 
-from Hospital_System.domain.entities import Patient, Doctor, Queue
 
 @fixture
 def patient():
     return Patient(
         id=uuid.uuid4(),
         nation_id=NationalID(id='1234567890123'),
-        first_name = Name(value='นนทพัฒน์'),
-        last_name = Name(value='คนสุขภาพดี'),
-        phone_number = PhoneNumber(value='0123456789'),
-        date_of_birth = DateOfBirth(year=1990, month=12, day=31),
+        first_name=Name(value='นนทพัฒน์'),
+        last_name=Name(value='คนสุขภาพดี'),
+        phone_number=PhoneNumber(value='0123456789'),
+        date_of_birth=DateOfBirth(year=1990, month=12, day=31),
         registered_address=Address(
             house_number='10',
             street='วิวิธสุรการ',
@@ -39,57 +39,66 @@ def patient():
         rights=Rights(rights_type=PatientRights.SOCIAL_SECURITY)
     )
 
-def test_create_patient_is_validate(patient):
 
+def test_create_patient_is_validate(patient):
     assert patient.id is not None
     assert patient.nation_id.id == '1234567890123'
     assert patient.first_name.value == 'นนทพัฒน์'
     assert patient.phone_number == PhoneNumber(value='0123456789')
     assert patient.rights == Rights(rights_type=PatientRights.SOCIAL_SECURITY)
 
+
 def test_should_raise_error_when_update_patient_id(patient):
     with raises(ValueError):
         patient.id = uuid.uuid4()
 
+
 def test_should_raise_error_when_update_patient_nation_id(patient):
     with raises(ValueError):
         patient.nation_id = NationalID(id='1111111111111')
+
 
 def test_should_update_patient_phone_number(patient):
     new_phone_number = PhoneNumber(value='0999999999')
     patient.update_phone_number(new_phone_number)
     assert patient.phone_number == new_phone_number
 
+
 def test_should_update_current_address(patient):
-    new_current_address = Address(# ตั้งอยู่ที่ 173 ถนนดินสอ แขวงเสาชิงช้า เขตพระนคร กรุงเทพมหานคร 10200
-            house_number='57',
-            street='อุดมสุข',
-            sub_district='บางนาเหนือ',
-            district='บางนา',
-            province=Province.BANGKOK,
-            postal_code='10260'
-        )
+    new_current_address = Address(  # ตั้งอยู่ที่ 173 ถนนดินสอ แขวงเสาชิงช้า เขตพระนคร กรุงเทพมหานคร 10200
+        house_number='57',
+        street='อุดมสุข',
+        sub_district='บางนาเหนือ',
+        district='บางนา',
+        province=Province.BANGKOK,
+        postal_code='10260'
+    )
     patient.update_current_address(new_current_address)
     assert patient.current_address == new_current_address
+
 
 def test_should_update_rights(patient):
     new_rights = Rights(rights_type=PatientRights.COMPANY_INSURANCE)
     patient.update_rights(new_rights)
     assert patient.rights == new_rights
 
+
 def test_should_raise_error_when_update_rights_invalid_type(patient):
     with raises(ValueError):
         patient.update_rights(PhoneNumber(value='0123456789'))
+
 
 def test_should_update_first_name(patient):
     new_first_name = Name(value='นันทวัน')
     patient.update_first_name(new_first_name)
     assert patient.first_name == new_first_name
 
+
 def test_should_update_last_name(patient):
     new_last_name = Name(value='คนมั่งคั่ง')
     patient.update_last_name(new_last_name)
     assert patient.last_name == new_last_name
+
 
 # ส่วนทดสอบ Entity Doctor
 @fixture
@@ -102,14 +111,17 @@ def doctor():
         medical_specialty=MedicalSpecialty(value=Specialization.INTERNAL_MEDICINE)
     )
 
+
 def test_should_create_Doctor(doctor):
     assert doctor.first_name == Name(value='รักษาหาย')
     assert doctor.license_number == LicenseNumber(id='ว.11231')
     assert doctor.medical_specialty == MedicalSpecialty(value=Specialization.INTERNAL_MEDICINE)
 
+
 def test_should_raise_error_when_update_id_doctor(doctor):
     with raises(ValueError):
         doctor.id = uuid.uuid4()
+
 
 def test_should_raise_error_when_update_License_number_doctor(doctor):
     with raises(ValueError):
@@ -121,24 +133,29 @@ def test_should_update_first_name_doctor(doctor):
     doctor.update_first_name(new_first_name_doctor)
     assert doctor.first_name == Name(value='รักษาดี')
 
+
 def test_should_update_last_name_doctor(doctor):
     new_last_name_doctor = Name(value='คนสุขภาพดี')
     doctor.update_last_name(new_last_name_doctor)
     assert doctor.last_name == new_last_name_doctor
+
 
 def test_should_update_phone_number_doctor(doctor):
     new_phone_number_doctor = PhoneNumber(value='0888888888')
     doctor.update_phone_number(new_phone_number_doctor)
     assert doctor.phone_number == new_phone_number_doctor
 
+
 def test_should_update_medical_specialty(doctor):
     new_medical_specialty = MedicalSpecialty(value=Specialization.CARDIOLOGY)
     doctor.update_medical_specialty(new_medical_specialty)
     assert doctor.medical_specialty == new_medical_specialty
 
+
 def test_should_raise_error_when_update_medical_specialty_invalid_type(doctor):
     with raises(ValueError):
         doctor.update_medical_specialty(LicenseNumber(id='ว.11231'))
+
 
 # ส่วนทดสอบ Entity Queue
 @fixture
@@ -147,9 +164,25 @@ def queue(patient):
         patient_id=patient.id,
         queue_number=Number(id=1),
         queue_date=date.today(),
+        vital_signs=VitalSigns(
+            blood_pressure=BloodPressure(systolic=120, diastolic=80),
+            weight=Weight(value=80),
+            height=Height(value=177),
+            temperature=Temperature(value=39.0),
+            symptom='น้ำหมูกไหล ปวดหัว ตัวร้อน หนาวสั่น'
+        ),
         status=QueueStatus.WAITING
     )
+
+
 def test_should_create_queue_entity_is_valid(patient, queue):
     assert queue.patient_id == patient.id
     assert queue.queue_date == date.today()
+    assert queue.vital_signs == VitalSigns(
+        blood_pressure=BloodPressure(systolic=120, diastolic=80),
+        weight=Weight(value=80),
+        height=Height(value=177),
+        temperature=Temperature(value=39.0),
+        symptom='น้ำหมูกไหล ปวดหัว ตัวร้อน หนาวสั่น'
+    )
     assert queue.status == QueueStatus.WAITING

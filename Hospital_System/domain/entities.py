@@ -6,7 +6,7 @@ from pydantic import BaseModel, ConfigDict
 
 from Hospital_System.domain.value_object import (
     Name, PhoneNumber, DateOfBirth, Address, NationalID, Rights,
-    LicenseNumber, MedicalSpecialty, Number, QueueStatus)
+    LicenseNumber, MedicalSpecialty, Number, QueueStatus, VitalSigns)
 
 
 class DomainEntity(BaseModel):
@@ -91,4 +91,5 @@ class Queue(DomainEntity):
     patient_id: UUID
     queue_number: Number
     queue_date: date
+    vital_signs: VitalSigns
     status: QueueStatus
