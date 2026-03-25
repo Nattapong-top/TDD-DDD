@@ -93,3 +93,12 @@ class Queue(DomainEntity):
     queue_date: date
     vital_signs: VitalSigns
     status: QueueStatus
+
+    def start_consultation(self) -> None:
+        self._validate_status()
+        self.status = self.status.IN_PROGRESS
+
+    def _validate_status(self):
+        if self.status != QueueStatus.WAITING:
+            raise ValueError(f'ไม่สามารถเริ่มตรวจได้ เพราะสถานปัจจบันคือ {self.status.value}')
+

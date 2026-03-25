@@ -186,3 +186,14 @@ def test_should_create_queue_entity_is_valid(patient, queue):
         symptom='น้ำหมูกไหล ปวดหัว ตัวร้อน หนาวสั่น'
     )
     assert queue.status == QueueStatus.WAITING
+
+def test_should_update_queue_entity_is_valid(queue):
+    assert queue.status == QueueStatus.WAITING
+
+    queue.start_consultation()
+    assert queue.status == QueueStatus.IN_PROGRESS
+
+def test_should_raise_error_when_start_consultation_but_status_is_not_waiting(queue):
+    queue.status = QueueStatus.COMPLETED
+    with raises(ValueError, match='ไม่สามารถเริ่มตรวจได้'):
+        queue.start_consultation()
