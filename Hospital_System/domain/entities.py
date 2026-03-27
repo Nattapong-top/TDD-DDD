@@ -102,6 +102,14 @@ class Queue(DomainEntity):
         self._validate_in_progress_status()
         self.status = QueueStatus.COMPLETED
 
+    def cancel_visit(self) -> None:
+        self._validate_cancellation()
+        self.status = QueueStatus.CANCELLED
+
+    def _validate_cancellation(self):
+        if self.status == QueueStatus.COMPLETED:
+            raise ValueError(f'ไม่สามารถยกเลิกการตรวจได้ เพราะสถานะปัจจุบันคือ {self.status.value}')
+
     def _validate_in_progress_status(self):
         if self.status != QueueStatus.IN_PROGRESS:
             raise ValueError(f'ไม่สามารถจบการตรวจได้ เพราะสถานะปัจจุบันคือ {self.status.value}')

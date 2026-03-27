@@ -214,3 +214,18 @@ def test_should_raise_error_when_complete_visit_but_status_is_WAITTING(queue):
     assert queue.status == QueueStatus.WAITING
     with raises(ValueError, match='ไม่สามารถจบการตรวจได้'):
         queue.complete_visit()
+
+def test_should_change_status_to_cancelled(queue):
+    queue.cancel_visit()
+    assert queue.status == QueueStatus.CANCELLED
+
+def test_should_raise_error_when_complete_visit_but_status_is_CANCELLED(queue):
+    queue.status = QueueStatus.COMPLETED
+    with raises(ValueError, match='ไม่สามารถยกเลิกการตรวจได้'):
+        queue.cancel_visit()
+
+def test_should_change_status_to_in_progress(queue):
+    queue.status = QueueStatus.IN_PROGRESS
+    assert queue.status == QueueStatus.IN_PROGRESS
+    queue.cancel_visit()
+    assert queue.status == QueueStatus.CANCELLED
