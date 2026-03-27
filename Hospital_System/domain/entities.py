@@ -98,6 +98,14 @@ class Queue(DomainEntity):
         self._validate_status()
         self.status = self.status.IN_PROGRESS
 
+    def complete_visit(self) -> None:
+        self._validate_in_progress_status()
+        self.status = QueueStatus.COMPLETED
+
+    def _validate_in_progress_status(self):
+        if self.status != QueueStatus.IN_PROGRESS:
+            raise ValueError(f'ไม่สามารถจบการตรวจได้ เพราะสถานะปัจจุบันคือ {self.status.value}')
+
     def _validate_status(self):
         if self.status != QueueStatus.WAITING:
             raise ValueError(f'ไม่สามารถเริ่มตรวจได้ เพราะสถานปัจจบันคือ {self.status.value}')
