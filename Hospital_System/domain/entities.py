@@ -1,4 +1,6 @@
 from datetime import date
+from typing import Optional
+
 from pydantic import Field
 from uuid import UUID, uuid4
 
@@ -6,7 +8,8 @@ from pydantic import BaseModel, ConfigDict
 
 from Hospital_System.domain.value_object import (
     Name, PhoneNumber, DateOfBirth, Address, NationalID, Rights,
-    LicenseNumber, MedicalSpecialty, Number, QueueStatus, VitalSigns)
+    LicenseNumber, MedicalSpecialty, Number, QueueStatus, VitalSigns,
+    Diagnosis)
 
 
 class DomainEntity(BaseModel):
@@ -93,14 +96,16 @@ class Queue(DomainEntity):
     queue_date: date
     vital_signs: VitalSigns
     status: QueueStatus
+    diagnosis: Optional[Diagnosis] = None
 
     def start_consultation(self) -> None:
         self._validate_status()
         self.status = self.status.IN_PROGRESS
 
-    def complete_visit(self) -> None:
-        self._validate_in_progress_status()
+    def complete_visit(self, diagnosis: Diagnosis) -> None:
+        self._validate_in_progress_status(diagnosis=diagnosis)
         self.status = QueueStatus.COMPLETED
+        self.diagnosis = diagnosis
 
     def cancel_visit(self) -> None:
         self._validate_cancellation()
@@ -110,9 +115,12 @@ class Queue(DomainEntity):
         if self.status == QueueStatus.COMPLETED:
             raise ValueError(f'ไม่สามารถยกเลิกการตรวจได้ เพราะสถานะปัจจุบันคือ {self.status.value}')
 
-    def _validate_in_progress_status(self):
+    def _validate_in_progress_status(self, diagnosis: Diagnosis) -> None:
         if self.status != QueueStatus.IN_PROGRESS:
             raise ValueError(f'ไม่สามารถจบการตรวจได้ เพราะสถานะปัจจุบันคือ {self.status.value}')
+
+        if diagnosis is None:
+            raise ValueError('กรุณากรอกข้อมูลการวินิจฉัยด้วยครับ')
 
     def _validate_status(self):
         if self.status != QueueStatus.WAITING:

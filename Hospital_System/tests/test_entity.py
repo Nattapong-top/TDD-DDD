@@ -8,7 +8,7 @@ from Hospital_System.domain.value_object import (
     Name, PhoneNumber, DateOfBirth, Address, Province,
     PatientRights, NationalID, Rights, LicenseNumber,
     MedicalSpecialty, Specialization, Number, QueueStatus,
-    VitalSigns, BloodPressure, Weight, Height, Temperature)
+    VitalSigns, BloodPressure, Weight, Height, Temperature, Diagnosis, MedicineInfo)
 
 
 @fixture
@@ -173,7 +173,17 @@ def queue(patient):
         ),
         status=QueueStatus.WAITING
     )
-
+@fixture
+def diagnosis(patient):
+    return Diagnosis(
+        disease='ไข้ทั่วไป',
+        treatment='พักผ่านให้เพียงพอและดื่มน้ำมากๆ',
+        medicine_prescribed=[MedicineInfo(
+            name='Paracetamol',
+            strength='500mg',
+            frequency='วันละ 3 ครั้ง หลักอาหาร'
+        )]
+    )
 
 def test_should_create_queue_entity_is_valid(patient, queue):
     assert queue.patient_id == patient.id
@@ -198,22 +208,27 @@ def test_should_raise_error_when_start_consultation_but_status_is_not_waiting(qu
     with raises(ValueError, match='ไม่สามารถเริ่มตรวจได้'):
         queue.start_consultation()
 
-def test_should_change_status_from_in_progress_to_completed(queue):
+def test_should_change_status_from_in_progress_to_completed(queue, diagnosis):
     queue.status = QueueStatus.IN_PROGRESS
-    assert queue.status == QueueStatus.IN_PROGRESS
-
-    queue.complete_visit()
+    queue.complete_visit(diagnosis=diagnosis)
     assert queue.status == QueueStatus.COMPLETED
+    assert queue.diagnosis == diagnosis
+
+def test_should_raise_error_when_complete_visit_but_not_diagnosis(queue):
+    queue.status = QueueStatus.IN_PROGRESS
+    with raises(ValueError, match='กรุณากรอกข้อมูลการวินิจฉัยด้วยครับ'):
+        queue.complete_visit(diagnosis=None)
+
 
 def test_should_raise_error_when_IN_PROGRESS_but_status_is_WAITTING(queue):
     queue.status = QueueStatus.IN_PROGRESS
     with raises(ValueError):
         queue.start_consultation()
 
-def test_should_raise_error_when_complete_visit_but_status_is_WAITTING(queue):
+def test_should_raise_error_when_complete_visit_but_status_is_WAITTING(queue, diagnosis):
     assert queue.status == QueueStatus.WAITING
     with raises(ValueError, match='ไม่สามารถจบการตรวจได้'):
-        queue.complete_visit()
+        queue.complete_visit(diagnosis=diagnosis)
 
 def test_should_change_status_to_cancelled(queue):
     queue.cancel_visit()
