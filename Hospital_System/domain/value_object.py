@@ -190,4 +190,4 @@ class MedicalSpecialty(DomainValueObject):
 
 
 class Number(DomainValueObject):
-    id: int = Field(..., ge=1, le=500)
+    id: int = Field(..., ge=0, le=500)
