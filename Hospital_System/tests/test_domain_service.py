@@ -1,11 +1,12 @@
 # test_domain_service.py
 import uuid
-from uuid import uuid4, UUID
-from typing import List, Optional
-from pytest import fixture
 from datetime import date, datetime
+from typing import List, Optional
+from uuid import UUID
 
+from pytest import fixture, raises
 
+from Hospital_System.domain.custom_error import DuplicationQueueError
 from Hospital_System.domain.domain_service import QueueService
 from Hospital_System.domain.entities import Queue, Patient
 from Hospital_System.domain.repository import QueueRecord
@@ -13,7 +14,6 @@ from Hospital_System.domain.value_object import (
     Number, VitalSigns, BloodPressure, Weight, Height, Temperature,
     QueueStatus, Rights, PatientRights, Province, Address, DateOfBirth,
     PhoneNumber, Name, NationalID)
-from Hospital_System.tests.test_entity import patient
 
 
 @fixture
@@ -98,6 +98,15 @@ class FakeQueueRecord(QueueRecord):
     def save(self, queue: Queue) -> None:
         self.queues.append(queue)
 
+    def find_active_queue_by_patient(self, patient_id: UUID, queue_date: date) -> Optional[Queue]:
+        for queue in self.queues:
+            if (queue.patient_id == patient_id and
+                queue.queue_date == queue_date and
+                queue.status in [QueueStatus.WAITING, QueueStatus.IN_PROGRESS]):
+                return queue
+        return None
+
+
 def test_should_queue_service_issue_first_number_of_the_day(repo):
     service = QueueService(repo)
 
@@ -128,3 +137,17 @@ def test_should_queue_service_issue_first_queue_successfully(repo, queue_service
     assert new_queue.queue_number == Number(id=1)
     assert new_queue.queue_date == date(2026, 3, 28)
     assert len(repo.queues) == 1
+
+def test_should_queue_service_raise_error_duplication_queue(repo, queue_service, patient, vital_signs, today_date):
+    new_queue = queue_service.issue_new_queue(
+        patient_id=patient.id,
+        today=today_date,
+        vital_signs=vital_signs,
+    )
+    with raises(DuplicationQueueError) as excinfo:
+        queue_service.issue_new_queue(
+            patient_id=patient.id,
+            today=today_date,
+            vital_signs=vital_signs,
+        )
+    assert 'จองคิวซ้ำไม่ได้' in str(excinfo.value)

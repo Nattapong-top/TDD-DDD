@@ -4,6 +4,7 @@ from typing import Tuple
 
 from datetime import datetime, date
 
+from Hospital_System.domain.custom_error import DuplicationQueueError
 from Hospital_System.domain.entities import Queue
 from Hospital_System.domain.repository import QueueRecord
 from Hospital_System.domain.value_object import Number, VitalSigns, QueueStatus
@@ -14,6 +15,8 @@ class QueueService:
         self.repo = repo
 
     def issue_new_queue(self, patient_id: UUID, today:date, vital_signs:VitalSigns) -> Queue:
+        self._ensure_no_duplicate_queue(patient_id, today)
+
         last_queue = self.repo.get_last_queue()
         last_num = last_queue.queue_number if last_queue else Number(id=0)
         last_date = last_queue.queue_date if last_queue else date(1990, 1, 1)
@@ -32,6 +35,11 @@ class QueueService:
 
         return new_queue
 
+    def _ensure_no_duplicate_queue(self, patient_id: UUID, today: date):
+        existing_queue = self.repo.find_active_queue_by_patient(patient_id=patient_id, queue_date=today)
+
+        if existing_queue:
+            raise DuplicationQueueError(f'คนไข้ ID {patient_id} จองคิวซ้ำไม่ได้ครับ')
 
     def get_next_number(self, last_number:Number, last_date: date, time_now: datetime, today: date) -> Tuple[Number,date, datetime]:
         last_number, last_date = self._reset_date_and_number(last_number, last_date, today)
