@@ -35,16 +35,26 @@ class QueueService:
 
         return new_queue
 
-    def _ensure_no_duplicate_queue(self, patient_id: UUID, today: date):
-        existing_queue = self.repo.find_active_queue_by_patient(patient_id=patient_id, queue_date=today)
-
-        if existing_queue:
-            raise DuplicationQueueError(f'คนไข้ ID {patient_id} จองคิวซ้ำไม่ได้ครับ')
-
     def get_next_number(self, last_number:Number, last_date: date, time_now: datetime, today: date) -> Tuple[Number,date, datetime]:
         last_number, last_date = self._reset_date_and_number(last_number, last_date, today)
         now_number = Number(id=last_number.id + 1)
         return now_number, last_date, time_now
+
+    def start_consultation(self, queue_id:UUID) -> Queue:
+        queue = self.repo.get_by_queue_id(queue_id=queue_id)
+        self._check_none_type(queue, queue_id)
+        queue.start_consultation()
+        self.repo.save(queue)
+        return queue
+
+    def _check_none_type(self, queue: Queue | None, queue_id: UUID):
+        if queue is None:
+            raise ValueError(f'ไม่พบใบคิวรหัส {queue_id} ในระบบครับ')
+
+    def _ensure_no_duplicate_queue(self, patient_id: UUID, today: date):
+        existing_queue = self.repo.find_active_queue_by_patient(patient_id=patient_id, queue_date=today)
+        if existing_queue:
+            raise DuplicationQueueError(f'คนไข้ ID {patient_id} จองคิวซ้ำไม่ได้ครับ')
 
     def _reset_date_and_number(self, last_number: Number, last_date: date, today: date) -> tuple[Number, date]:
         if last_date < today:

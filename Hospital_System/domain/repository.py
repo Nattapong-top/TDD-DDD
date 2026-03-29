@@ -18,3 +18,7 @@ class QueueRecord(ABC):
     @abstractmethod
     def find_active_queue_by_patient(self, patient_id: UUID, queue_date: date) -> Optional[Queue]:
         pass
+
+    @abstractmethod
+    def get_by_queue_id(self, queue_id: UUID) -> Optional[Queue]:
+        pass

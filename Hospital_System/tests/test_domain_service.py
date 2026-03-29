@@ -106,6 +106,12 @@ class FakeQueueRecord(QueueRecord):
                 return queue
         return None
 
+    def get_by_queue_id(self, queue_id: UUID) -> Optional[Queue]:
+        for queue in self.queues:
+            if queue.id == queue_id:
+                return queue
+        return None
+
 
 def test_should_queue_service_issue_first_number_of_the_day(repo):
     service = QueueService(repo)
@@ -151,3 +157,20 @@ def test_should_queue_service_raise_error_duplication_queue(repo, queue_service,
             vital_signs=vital_signs,
         )
     assert 'จองคิวซ้ำไม่ได้' in str(excinfo.value)
+
+def test_should_start_consultation_successfully(repo, queue_service, patient, vital_signs, today_date):
+    new_queue = queue_service.issue_new_queue(
+        patient_id=patient.id,
+        today=today_date,
+        vital_signs=vital_signs,
+    )
+    updated_queue = queue_service.start_consultation(queue_id=new_queue.id)
+    assert updated_queue.status == QueueStatus.IN_PROGRESS
+    assert repo.get_by_queue_id(queue_id=new_queue.id).status == QueueStatus.IN_PROGRESS
+
+def test_should_start_consultation_with_invalid_id_raises_error(queue_service):
+    invalid_id = uuid.uuid4()
+    with raises(ValueError) as excinfo:
+        queue_service.start_consultation(queue_id=invalid_id)
+    assert 'ไม่พบใบคิว' in str(excinfo.value)
+
