@@ -1,12 +1,38 @@
 # domain_service.py
+from uuid import UUID
 from typing import Tuple
 
 from datetime import datetime, date
 
-from Hospital_System.domain.value_object import Number
+from Hospital_System.domain.entities import Queue
+from Hospital_System.domain.repository import QueueRecord
+from Hospital_System.domain.value_object import Number, VitalSigns, QueueStatus
 
 
 class QueueService:
+    def __init__(self, repo: QueueRecord) -> None:
+        self.repo = repo
+
+    def issue_new_queue(self, patient_id: UUID, today:date, vital_signs:VitalSigns) -> Queue:
+        last_queue = self.repo.get_last_queue()
+        last_num = last_queue.queue_number if last_queue else Number(id=0)
+        last_date = last_queue.queue_date if last_queue else date(1990, 1, 1)
+
+        next_num, next_date, _ = self.get_next_number(
+            last_number=last_num, last_date=last_date, today=today, time_now=datetime.now())
+
+        new_queue = Queue(
+            patient_id=patient_id,
+            queue_number=next_num,
+            queue_date=next_date,
+            vital_signs=vital_signs,
+            status=QueueStatus.WAITING
+        )
+        self.repo.save(new_queue)
+
+        return new_queue
+
+
     def get_next_number(self, last_number:Number, last_date: date, time_now: datetime, today: date) -> Tuple[Number,date, datetime]:
         last_number, last_date = self._reset_date_and_number(last_number, last_date, today)
         now_number = Number(id=last_number.id + 1)
