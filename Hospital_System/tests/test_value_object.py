@@ -1,14 +1,14 @@
 # Unit Tests for Hospital_System
 from datetime import date
 from decimal import Decimal
-
+from pydantic import ValidationError
 from pytest import raises, fixture
 
 from Hospital_System.domain.value_object import (
     Name, PhoneNumber, DateOfBirth, Address, Province, PatientRights, Rights,
     BloodPressure, Weight, Height, Temperature, VitalSigns,
     Diagnosis, MedicineInfo, Payment, PaymentType, NationalID, LicenseNumber,
-    Specialization, MedicalSpecialty)
+    Specialization, MedicalSpecialty, Version)
 
 
 # ส่วนของ VO Name เทสชื่อและนามสกุล
@@ -405,13 +405,14 @@ def test_should_create_Diagnosis_without_medicine_prescribed():
         medicine_prescribed=[]  # ไม่มียา
     )
 
+
 def test_should_raise_error_when_Diagnosis_max_length():
     with raises(ValueError):
         Diagnosis(
-        disease='เครียดสะสม'*30,
-        treatment='พักผ่อน ออกกำลังกาย'*30,
-        medicine_prescribed=[]  # ไม่มียา
-    )
+            disease='เครียดสะสม' * 30,
+            treatment='พักผ่อน ออกกำลังกาย' * 30,
+            medicine_prescribed=[]  # ไม่มียา
+        )
 
 
 # ส่วนของ VO MedicineInfo เทสข้อมูลยา
@@ -427,6 +428,7 @@ def test_should_create_MedicineInfo_is_valid():
         frequency='วันละ 3 ครั้ง หลักอาหาร'
     )
 
+
 def test_should_raise_error_when_MedicineInfo_empty_and_whitespace():
     with raises(ValueError):
         MedicineInfo(
@@ -435,10 +437,11 @@ def test_should_raise_error_when_MedicineInfo_empty_and_whitespace():
             frequency='    ',
         )
 
+
 def test_should_raise_error_when_MedicineInfo_too_long():
     with raises(ValueError):
         MedicineInfo(
-            name='Paracetamol'*100,
+            name='Paracetamol' * 100,
             strength='500mg',
             frequency='วันละ 3 ครั้ง',
         )
@@ -451,41 +454,51 @@ def test_should_Payment_is_valid():
     assert payment == Payment(amount=Decimal('500.11'), payment_type=PaymentType.SOCIAL_SECURITY)
     assert result == Decimal('1')
 
+
 def test_should_raise_error_when_Payment_is_negative():
     with raises(ValueError):
         Payment(amount=Decimal('-0.1'), payment_type=PaymentType.SOCIAL_SECURITY)
+
 
 def test_should_raise_error_when_Payment_is_zero():
     with raises(ValueError):
         Payment(amount=Decimal('0.0'), payment_type=PaymentType.SOCIAL_SECURITY)
 
+
 def test_should_raise_error_when_Payment_is_over_limit_10_000_000():
     with raises(ValueError):
         Payment(amount=Decimal('10000000.01'), payment_type=PaymentType.SOCIAL_SECURITY)
+
 
 def test_create_Payment_with_cash_is_valid():
     payment = Payment(amount=Decimal('1000.00'), payment_type=PaymentType.CASH)
     assert payment.payment_type == PaymentType.CASH
 
+
 def test_create_Payment_with_QR_PAYMANT_is_valid():
     payment = Payment(amount=Decimal('100.00'), payment_type=PaymentType.QR_PAYMENT)
     assert payment.payment_type == PaymentType.QR_PAYMENT
+
 
 def test_create_NationalID_is_valid():
     national_id = NationalID(id='1234567890123')
     assert national_id == NationalID(id='1234567890123')
 
+
 def test_should_raise_error_when_NationalID_empty_and_whitespace():
     with raises(ValueError):
         NationalID(id='             ')
+
 
 def test_should_raise_error_when_NationalID_too_long():
     with raises(ValueError):
         NationalID(id='12345678901231')
 
+
 def test_should_raise_error_when_NationalID_too_short():
     with raises(ValueError):
         NationalID(id='123456789012')
+
 
 def test_should_raise_error_when_NationalID_is_str():
     with raises(ValueError):
@@ -496,26 +509,59 @@ def test_should_raise_error_when_NationalID_is_negative():
     with raises(ValueError):
         NationalID(id='-234567890124')
 
+
 def test_should_create_LicenseNumber_doctor_is_valid():
     license_number = LicenseNumber(id='ว.12345')
     assert license_number == LicenseNumber(id='ว.12345')
+
 
 def test_should_raise_error_when_LicenseNumber_too_long():
     with raises(ValueError):
         LicenseNumber(id='ว.123456')
 
+
 def test_should_raise_error_when_LicenseNumber_too_short():
     with raises(ValueError):
         LicenseNumber(id='.123456')
+
 
 def test_should_raise_error_when_LicenseNumber_is_str():
     with raises(ValueError):
         LicenseNumber(id='ว.1234X')
 
+
 def test_should_create_MedicalSpecialty_in_Enum_is_valid():
     spacial = MedicalSpecialty(value=Specialization.INTERNAL_MEDICINE)
     assert spacial == MedicalSpecialty(value=Specialization.INTERNAL_MEDICINE)
 
+
 def test_should_raises_error_when_MedicalSpecialty_is_invalid():
     with raises(ValueError):
         MedicalSpecialty(value='test')
+
+
+def test_Version_should_create_version_is_valid():
+    version = Version(number=1)
+    assert version == Version(number=1)
+
+def test_Version_should_raises_error_when_invalid_type():
+    with raises(ValidationError):
+        Version(number='A')
+
+def test_Version_should_raises_error_when_number_zero():
+    with raises(ValidationError) as excinfo:
+        Version(number=0)
+
+    assert excinfo.type == ValidationError
+
+def test_Version_should_raises_error_when_number_negative():
+    with raises(ValidationError) as excinfo:
+        Version(number=-10)
+    assert excinfo.type == ValidationError
+
+
+def test_Version_should_create_increment_next_version_is_valid():
+    current_version = Version(number=1)
+    assert current_version == Version(number=1)
+    next_version = current_version.increment()
+    assert next_version == Version(number=2)

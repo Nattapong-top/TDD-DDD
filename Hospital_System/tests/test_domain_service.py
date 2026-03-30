@@ -165,6 +165,8 @@ def test_should_start_consultation_successfully(repo, queue_service, patient, vi
         vital_signs=vital_signs,
     )
     updated_queue = queue_service.start_consultation(queue_id=new_queue.id)
+    assert updated_queue.id == new_queue.id
+    assert updated_queue.queue_date == new_queue.queue_date
     assert updated_queue.status == QueueStatus.IN_PROGRESS
     assert repo.get_by_queue_id(queue_id=new_queue.id).status == QueueStatus.IN_PROGRESS
 

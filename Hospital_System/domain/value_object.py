@@ -191,3 +191,9 @@ class MedicalSpecialty(DomainValueObject):
 
 class Number(DomainValueObject):
     id: int = Field(..., ge=0, le=500)
+
+class Version(DomainValueObject):
+    number: int = Field(..., ge=1)
+
+    def increment(self) -> 'Version':
+        return Version(number=self.number + 1)
