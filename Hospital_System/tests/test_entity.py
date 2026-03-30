@@ -8,7 +8,8 @@ from Hospital_System.domain.value_object import (
     Name, PhoneNumber, DateOfBirth, Address, Province,
     PatientRights, NationalID, Rights, LicenseNumber,
     MedicalSpecialty, Specialization, Number, QueueStatus,
-    VitalSigns, BloodPressure, Weight, Height, Temperature, Diagnosis, MedicineInfo)
+    VitalSigns, BloodPressure, Weight, Height, Temperature,
+    Diagnosis, MedicineInfo, Version)
 
 
 @fixture
@@ -171,7 +172,8 @@ def queue(patient):
             temperature=Temperature(value=39.0),
             symptom='น้ำหมูกไหล ปวดหัว ตัวร้อน หนาวสั่น'
         ),
-        status=QueueStatus.WAITING
+        status=QueueStatus.WAITING,
+        version=Version(number=1)
     )
 @fixture
 def diagnosis(patient):
@@ -196,6 +198,16 @@ def test_should_create_queue_entity_is_valid(patient, queue):
         symptom='น้ำหมูกไหล ปวดหัว ตัวร้อน หนาวสั่น'
     )
     assert queue.status == QueueStatus.WAITING
+    assert queue.version == Version(number=1)
+
+def test_Queue_with_Version_should_next_version_when_is_valid(patient, queue):
+    assert queue.version == Version(number=1)
+    assert queue.patient_id == patient.id
+
+    queue.start_consultation()
+    assert queue.status == QueueStatus.IN_PROGRESS
+    assert queue.version == Version(number=2)
+
 
 def test_should_update_queue_entity_is_valid(queue):
     assert queue.status == QueueStatus.WAITING

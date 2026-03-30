@@ -9,7 +9,7 @@ from pydantic import BaseModel, ConfigDict
 from Hospital_System.domain.value_object import (
     Name, PhoneNumber, DateOfBirth, Address, NationalID, Rights,
     LicenseNumber, MedicalSpecialty, Number, QueueStatus, VitalSigns,
-    Diagnosis)
+    Diagnosis, Version)
 
 
 class DomainEntity(BaseModel):
@@ -97,10 +97,12 @@ class Queue(DomainEntity):
     vital_signs: VitalSigns
     status: QueueStatus
     diagnosis: Optional[Diagnosis] = None
+    version: Version = Field(default=Version(number=1))
 
     def start_consultation(self) -> None:
         self._validate_status()
-        self.status = self.status.IN_PROGRESS
+        self.status = QueueStatus.IN_PROGRESS
+        self.version = self.version.increment()
 
     def complete_visit(self, diagnosis: Diagnosis) -> None:
         self._validate_in_progress_status(diagnosis=diagnosis)
