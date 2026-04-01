@@ -6,6 +6,7 @@ from uuid import UUID, uuid4
 
 from pydantic import BaseModel, ConfigDict
 
+from Hospital_System.domain.custom_error import InvalidStatusTransitionError, MissingDiagnosisError
 from Hospital_System.domain.value_object import (
     Name, PhoneNumber, DateOfBirth, Address, NationalID, Rights,
     LicenseNumber, MedicalSpecialty, Number, QueueStatus, VitalSigns,
@@ -108,6 +109,8 @@ class Queue(DomainEntity):
         self._validate_in_progress_status(diagnosis=diagnosis)
         self.status = QueueStatus.COMPLETED
         self.diagnosis = diagnosis
+        self.version = self.version.increment()
+
 
     def cancel_visit(self) -> None:
         self._validate_cancellation()
@@ -119,10 +122,10 @@ class Queue(DomainEntity):
 
     def _validate_in_progress_status(self, diagnosis: Diagnosis) -> None:
         if self.status != QueueStatus.IN_PROGRESS:
-            raise ValueError(f'ไม่สามารถจบการตรวจได้ เพราะสถานะปัจจุบันคือ {self.status.value}')
+            raise InvalidStatusTransitionError(f'ไม่สามารถจบการตรวจได้ เพราะสถานะปัจจุบันคือ {self.status.value}')
 
         if diagnosis is None:
-            raise ValueError('กรุณากรอกข้อมูลการวินิจฉัยด้วยครับ')
+            raise MissingDiagnosisError('กรุณากรอกข้อมูลการวินิจฉัยด้วยครับ')
 
     def _validate_status(self):
         if self.status != QueueStatus.WAITING:

@@ -165,7 +165,7 @@ class MedicineInfo(DomainValueObject):
 
 class Diagnosis(DomainValueObject):
     disease: str = Field(..., min_length=1, max_length=100)
-    treatment: str = Field(..., min_length=1, max_length=100)
+    treatment: str = Field(..., min_length=1, max_length=500)
     medicine_prescribed: list[MedicineInfo] = []
 
     @field_validator('disease', 'treatment')

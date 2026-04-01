@@ -7,7 +7,7 @@ from datetime import datetime, date
 from Hospital_System.domain.custom_error import DuplicationQueueError
 from Hospital_System.domain.entities import Queue
 from Hospital_System.domain.repository import QueueRecord
-from Hospital_System.domain.value_object import Number, VitalSigns, QueueStatus
+from Hospital_System.domain.value_object import Number, VitalSigns, QueueStatus, Diagnosis
 
 
 class QueueService:
@@ -46,6 +46,14 @@ class QueueService:
         queue.start_consultation()
         self.repo.save(queue)
         return queue
+
+    def complete_visit(self, queue_id: UUID, diagnosis: Diagnosis) -> Queue:
+        queue = self.repo.get_by_queue_id(queue_id=queue_id)
+        self._check_none_type(queue, queue_id)
+        queue.complete_visit(diagnosis)
+        self.repo.save(queue)
+        return queue
+
 
     def _check_none_type(self, queue: Queue | None, queue_id: UUID):
         if queue is None:

@@ -211,9 +211,11 @@ def test_Queue_with_Version_should_next_version_when_is_valid(patient, queue):
 
 def test_should_update_queue_entity_is_valid(queue):
     assert queue.status == QueueStatus.WAITING
+    assert queue.version == Version(number=1)
 
     queue.start_consultation()
     assert queue.status == QueueStatus.IN_PROGRESS
+    assert queue.version == Version(number=2)
 
 def test_should_raise_error_when_start_consultation_but_status_is_not_waiting(queue):
     queue.status = QueueStatus.COMPLETED

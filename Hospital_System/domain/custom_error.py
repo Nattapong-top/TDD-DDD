@@ -4,3 +4,9 @@ class DomainError(Exception):
 
 class DuplicationQueueError(DomainError):
     pass
+
+class InvalidStatusTransitionError(DomainError):
+    pass
+
+class MissingDiagnosisError(DomainError):
+    pass
