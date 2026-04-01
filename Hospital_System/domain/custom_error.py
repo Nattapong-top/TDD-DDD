@@ -10,3 +10,6 @@ class InvalidStatusTransitionError(DomainError):
 
 class MissingDiagnosisError(DomainError):
     pass
+
+class InvalidCancelRequestError(DomainError):
+    pass

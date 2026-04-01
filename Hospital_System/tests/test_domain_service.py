@@ -6,7 +6,8 @@ from uuid import UUID
 
 from pytest import fixture, raises
 
-from Hospital_System.domain.custom_error import DuplicationQueueError, InvalidStatusTransitionError
+from Hospital_System.domain.custom_error import (DuplicationQueueError, InvalidStatusTransitionError,
+     InvalidCancelRequestError)
 from Hospital_System.domain.domain_service import QueueService
 from Hospital_System.domain.entities import Queue, Patient
 from Hospital_System.domain.repository import QueueRecord
@@ -91,6 +92,28 @@ def patient():
             postal_code='10200'
         ),
         rights=Rights(rights_type=PatientRights.SOCIAL_SECURITY)
+    )
+
+
+@fixture
+def diagnosis(patient):
+    return Diagnosis(
+        disease='ไข้ทั่วไป',
+        treatment='พักผ่านให้เพียงพอและดื่มน้ำมากๆ',
+        medicine_prescribed=[MedicineInfo(
+            name='Paracetamol',
+            strength='500mg',
+            frequency='วันละ 3 ครั้ง หลักอาหาร'
+        )]
+    )
+
+
+@fixture
+def new_queue(repo, queue_service, patient, vital_signs, today_date):
+    return queue_service.issue_new_queue(
+        patient_id=patient.id,
+        today=today_date,
+        vital_signs=vital_signs,
     )
 
 
@@ -186,26 +209,6 @@ def test_should_start_consultation_with_invalid_id_raises_error(queue_service):
         queue_service.start_consultation(queue_id=invalid_id)
     assert 'ไม่พบใบคิว' in str(excinfo.value)
 
-@fixture
-def diagnosis(patient):
-    return Diagnosis(
-        disease='ไข้ทั่วไป',
-        treatment='พักผ่านให้เพียงพอและดื่มน้ำมากๆ',
-        medicine_prescribed=[MedicineInfo(
-            name='Paracetamol',
-            strength='500mg',
-            frequency='วันละ 3 ครั้ง หลักอาหาร'
-        )]
-    )
-
-@fixture
-def new_queue(repo, queue_service, patient, vital_signs, today_date):
-    return queue_service.issue_new_queue(
-        patient_id=patient.id,
-        today=today_date,
-        vital_signs=vital_signs,
-    )
-
 
 def test_queue_service_should_complete_visit_when_is_valid(new_queue, diagnosis, patient, queue_service, repo):
     assert new_queue.status == QueueStatus.WAITING
@@ -227,11 +230,41 @@ def test_queue_service_should_raise_error_when_complete_visit_patient_id_invalid
         queue_service.complete_visit(queue_id=uuid.uuid4(), diagnosis=diagnosis)
     assert 'ไม่พบใบคิวรหัส' in str(excinfo.value)
 
-def test_queue_service_should_raise_error_when_complete_visit_status_witting(queue_service, diagnosis, new_queue,):
+
+def test_queue_service_should_raise_error_when_complete_visit_status_witting(queue_service, diagnosis, new_queue, ):
     assert new_queue.status == QueueStatus.WAITING
     with raises(InvalidStatusTransitionError) as excinfo:
         queue_service.complete_visit(queue_id=new_queue.id, diagnosis=diagnosis)
     assert 'ไม่สามารถจบการตรวจได้' in str(excinfo.value)
 
 
+def test_queue_service_should_cancel_visit_when_status_witting(new_queue, diagnosis, patient,
+                                                               queue_service, repo):
+    assert new_queue.status == QueueStatus.WAITING
+    assert new_queue.version == Version(number=1)
 
+    update_queue = queue_service.cancel_visit(queue_id=new_queue.id)
+    assert update_queue.status == QueueStatus.CANCELLED
+    assert update_queue.version == Version(number=2)
+    save_queue = repo.get_by_queue_id(new_queue.id)
+    assert save_queue.status == QueueStatus.CANCELLED
+
+
+def test_queue_service_should_cancel_visit_when_status_in_progress(new_queue, queue_service, repo):
+    update_queue = queue_service.start_consultation(queue_id=new_queue.id)
+    assert update_queue.status == QueueStatus.IN_PROGRESS
+    assert update_queue.version == Version(number=2)
+
+    cancel_queue = queue_service.cancel_visit(queue_id=new_queue.id)
+    assert cancel_queue.status == QueueStatus.CANCELLED
+    assert cancel_queue.version == Version(number=3)
+    save_repo = repo.get_by_queue_id(new_queue.id)
+    assert save_repo.status == QueueStatus.CANCELLED
+
+
+def test_queue_service_should_raise_error_when_cancel_visit_whit_status_complete(new_queue, queue_service, repo, diagnosis):
+    with raises(InvalidCancelRequestError) as excinfo:
+        queue_service.start_consultation(queue_id=new_queue.id)
+        queue_service.complete_visit(queue_id=new_queue.id, diagnosis=diagnosis)
+        queue_service.cancel_visit(queue_id=new_queue.id)
+    assert 'ไม่สามารถยกเลิกการตรวจได้' in str(excinfo.value)

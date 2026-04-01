@@ -54,6 +54,13 @@ class QueueService:
         self.repo.save(queue)
         return queue
 
+    def cancel_visit(self, queue_id: UUID):
+        queue = self.repo.get_by_queue_id(queue_id=queue_id)
+        self._check_none_type(queue, queue_id)
+        queue.cancel_visit()
+        self.repo.save(queue=queue)
+        return queue
+
 
     def _check_none_type(self, queue: Queue | None, queue_id: UUID):
         if queue is None:

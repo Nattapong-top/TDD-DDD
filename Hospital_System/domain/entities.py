@@ -6,7 +6,8 @@ from uuid import UUID, uuid4
 
 from pydantic import BaseModel, ConfigDict
 
-from Hospital_System.domain.custom_error import InvalidStatusTransitionError, MissingDiagnosisError
+from Hospital_System.domain.custom_error import (InvalidStatusTransitionError, MissingDiagnosisError, \
+     InvalidCancelRequestError)
 from Hospital_System.domain.value_object import (
     Name, PhoneNumber, DateOfBirth, Address, NationalID, Rights,
     LicenseNumber, MedicalSpecialty, Number, QueueStatus, VitalSigns,
@@ -115,10 +116,11 @@ class Queue(DomainEntity):
     def cancel_visit(self) -> None:
         self._validate_cancellation()
         self.status = QueueStatus.CANCELLED
+        self.version = self.version.increment()
 
     def _validate_cancellation(self):
         if self.status == QueueStatus.COMPLETED:
-            raise ValueError(f'ไม่สามารถยกเลิกการตรวจได้ เพราะสถานะปัจจุบันคือ {self.status.value}')
+            raise InvalidCancelRequestError(f'ไม่สามารถยกเลิกการตรวจได้ เพราะสถานะปัจจุบันคือ {self.status.value}')
 
     def _validate_in_progress_status(self, diagnosis: Diagnosis) -> None:
         if self.status != QueueStatus.IN_PROGRESS:
