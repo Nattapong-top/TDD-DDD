@@ -13,3 +13,6 @@ class MissingDiagnosisError(DomainError):
 
 class InvalidCancelRequestError(DomainError):
     pass
+
+class RegistryNotConfiguredError(DomainError):
+    pass
