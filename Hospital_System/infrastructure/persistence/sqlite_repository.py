@@ -86,3 +86,27 @@ class SqlQueueRepository:
                     symptom=row['symptom']
                 )
             )
+
+    def get_all(self) -> list[Queue]:
+        with closing(self._get_connection()) as conn:
+            rows = conn.execute('SELECT * FROM queue').fetchall()
+            queues = []
+            for row in rows:
+                q = Queue(
+                    id=UUID(row['q_id']),
+                    patient_id=UUID(row['p_id']),
+                    queue_number=Number(id=row['p_num']),
+                    queue_date=date.fromisoformat(row['q_date']),
+                    status=QueueStatus(row['status']),
+                    version=Version(number=row['ver']),
+                    vital_signs=VitalSigns(
+                        blood_pressure=BloodPressure(systolic=row['bp_sys'], diastolic=row['bp_dia']),
+                        weight=Weight(value=row['w_kg']),
+                        height=Height(value=row['h_cm']),
+                        temperature=Temperature(value=row['temp_c']),
+                        symptom=row['symptom']
+                    )
+                )
+                queues.append(q)
+            return queues
+
