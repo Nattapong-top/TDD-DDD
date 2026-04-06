@@ -20,7 +20,7 @@ def test_sqlite_repo_should_save_and_retrieve_queue(patient, queue, repo):
     pa_queue = queue
     repo.save(pa_queue)
 
-    retrieved = repo.get_by_id(pa_queue.id)
+    retrieved = repo.get_by_queue_id(pa_queue.id)
     assert retrieved.id == pa_queue.id
     assert retrieved.patient_id == pa_queue.patient_id
     assert retrieved.vital_signs.blood_pressure.systolic == 120
@@ -37,7 +37,7 @@ def test_sqlite_repo_should_update_existing_queue(patient, queue, repo):
     repo.save(sample_queue)
     sample_queue.start_consultation()
     repo.save(sample_queue)
-    updated_queue = repo.get_by_id(sample_queue.id)
+    updated_queue = repo.get_by_queue_id(sample_queue.id)
 
     assert updated_queue.status == QueueStatus.IN_PROGRESS
     assert updated_queue.version.number == 2
@@ -51,7 +51,7 @@ def test_sqlite_repo_should_return_none_when_queue_not_found(repo):
     repo.create_schema()
     import uuid
     random_id = uuid.uuid4()
-    result_queue = repo.get_by_id(random_id)
+    result_queue = repo.get_by_queue_id(random_id)
     assert result_queue is None
     os.remove(repo.db_path)
 
@@ -79,7 +79,7 @@ def test_sqlite_repo_should_save_extremely_long_diagnosis(repo, queue):
         )
     )
     repo.save(queue)
-    retrieved = repo.get_by_id(queue.id)
+    retrieved = repo.get_by_queue_id(queue.id)
 
     assert retrieved.id == queue.id
     assert retrieved.patient_id == queue.patient_id

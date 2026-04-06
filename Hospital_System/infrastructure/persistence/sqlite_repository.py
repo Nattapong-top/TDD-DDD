@@ -2,16 +2,18 @@ import json
 import sqlite3
 from contextlib import closing
 from datetime import date
+from typing import Optional
 from uuid import UUID
 
 from Hospital_System.domain.domain_service import Queue
+from Hospital_System.domain.repository import QueueRecord
 from Hospital_System.domain.value_object import (
     QueueStatus, Version, VitalSigns, BloodPressure, Weight, Height,
     Temperature, Number, MedicineInfo, Diagnosis
 )
 
 
-class SqlQueueRepository:
+class SqlQueueRepository(QueueRecord):
     # =====================================================================
     # 1. SQL CONSTANTS (ศูนย์รวมคำสั่ง DB ทั้งหมดอยู่ที่นี่ที่เดียว)
     # =====================================================================
@@ -59,7 +61,7 @@ class SqlQueueRepository:
                 data_tuple = self._map_entity_to_tuple(queue, diag_data)
                 conn.execute(self._UPSERT_QUEUE_QUERY, data_tuple)
 
-    def get_by_id(self, queue_id: UUID) -> Queue | None:
+    def get_by_queue_id(self, queue_id: UUID) -> Queue | None:
         with closing(self._get_connection()) as conn:
             row = conn.execute(self._SELECT_BY_ID_QUERY, (str(queue_id),)).fetchone()
             if not row:
@@ -70,6 +72,12 @@ class SqlQueueRepository:
         with closing(self._get_connection()) as conn:
             rows = conn.execute(self._SELECT_ALL_QUERY).fetchall()
             return [self._map_row_to_entity(row) for row in rows]
+
+    def get_last_queue(self) -> Queue | None:
+        raise NotImplementedError('เดี๋ยวป๋ามาเขียน SQL ทีหลังครับ')
+
+    def find_active_queue_by_patient(self, patient_id: UUID, queue_date: date) -> Queue | None:
+        raise NotImplementedError('เดี๋ยวป๋ามาเขียน SQL ทีหลังครับ')
 
     # =====================================================================
     # 3. HELPER METHODS (ลูกมือรับจบงานถึกทน)
