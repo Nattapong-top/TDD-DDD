@@ -2,7 +2,6 @@ import json
 import sqlite3
 from contextlib import closing
 from datetime import date
-from typing import Optional
 from uuid import UUID
 
 from Hospital_System.domain.domain_service import Queue
