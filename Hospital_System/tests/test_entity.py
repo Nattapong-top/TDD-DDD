@@ -3,6 +3,8 @@ from datetime import date
 
 from pytest import fixture, raises
 
+from Hospital_System.domain.custom_error import MissingDiagnosisError, InvalidStatusTransitionError, \
+    InvalidCancelRequestError
 from Hospital_System.domain.entities import Patient, Doctor, Queue
 from Hospital_System.domain.value_object import (
     Name, PhoneNumber, DateOfBirth, Address, Province,
@@ -230,7 +232,7 @@ def test_should_change_status_from_in_progress_to_completed(queue, diagnosis):
 
 def test_should_raise_error_when_complete_visit_but_not_diagnosis(queue):
     queue.status = QueueStatus.IN_PROGRESS
-    with raises(ValueError, match='กรุณากรอกข้อมูลการวินิจฉัยด้วยครับ'):
+    with raises(MissingDiagnosisError):
         queue.complete_visit(diagnosis=None)
 
 
@@ -241,7 +243,7 @@ def test_should_raise_error_when_IN_PROGRESS_but_status_is_WAITTING(queue):
 
 def test_should_raise_error_when_complete_visit_but_status_is_WAITTING(queue, diagnosis):
     assert queue.status == QueueStatus.WAITING
-    with raises(ValueError, match='ไม่สามารถจบการตรวจได้'):
+    with raises(InvalidStatusTransitionError):
         queue.complete_visit(diagnosis=diagnosis)
 
 def test_should_change_status_to_cancelled(queue):
@@ -250,7 +252,7 @@ def test_should_change_status_to_cancelled(queue):
 
 def test_should_raise_error_when_complete_visit_but_status_is_CANCELLED(queue):
     queue.status = QueueStatus.COMPLETED
-    with raises(ValueError, match='ไม่สามารถยกเลิกการตรวจได้'):
+    with raises(InvalidCancelRequestError):
         queue.cancel_visit()
 
 def test_should_change_status_to_in_progress(queue):
