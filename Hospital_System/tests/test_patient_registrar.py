@@ -1,4 +1,5 @@
 #tests.test_patient_registrar
+from pydantic import ValidationError
 from pytest import fixture, raises
 
 from Hospital_System.domain.domain_service.patient_registrar import PatientRegistrar
@@ -95,3 +96,44 @@ def test_registrar_patient_should_raise_error_when_duplicate_nation_id(registrar
             rights=Rights(rights_type=PatientRights.SOCIAL_SECURITY)
         )
     assert 'เลขบัตรประชาชนนี้มีในระบบแล้ว' in str(error.value)
+
+
+def test_patient_registrar_should_raise_error_when_nation_id_invalid(registrar, registered_address, current_address):
+    with raises(ValidationError) as error:
+        registrar.register_new_patient(
+            nation_id=NationalID(id='132456'),
+            first_name=Name(value='นนทพัฒน์'),
+            last_name=Name(value='คนสุขภาพดี'),
+            phone_number=PhoneNumber(value='0123456789'),
+            date_of_birth=DateOfBirth(year=1990, month=12, day=31),
+            registered_address=registered_address,
+            current_address=current_address,
+            rights=Rights(rights_type=PatientRights.SOCIAL_SECURITY)
+        )
+    assert '132456' in str(error.value)
+
+# เคสที่ 4: ระบบฐานข้อมูลมีปัญหา (Infrastructure Failure)
+class BrokenPatientRecord:
+    def save(self, patient: Patient) -> None:
+        raise RuntimeError('Database error save ไม่ได้')
+
+    def get_by_nation_id(self, nation_id: NationalID) -> None:
+        return None
+
+def test_patient_registrar_should_handle_repository_failure(registered_address, current_address):
+    broken_repo = BrokenPatientRecord()
+    unlucky_registrar = PatientRegistrar(repo=broken_repo)
+
+    with raises(RuntimeError) as excinfo:
+        unlucky_registrar.register_new_patient(
+            nation_id=NationalID(id='1100110011001'),
+            first_name=Name(value='สมชาย'),
+            last_name=Name(value='โชคร้าย'),
+            phone_number=PhoneNumber(value='0811111111'),
+            date_of_birth=DateOfBirth(year=1980, month=1, day=1),
+            registered_address=registered_address,
+            current_address=current_address,
+            rights=Rights(rights_type=PatientRights.GOLD_CARD)
+        )
+
+    assert "Database error save ไม่ได้" in str(excinfo.value)
