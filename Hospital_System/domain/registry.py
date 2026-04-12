@@ -1,12 +1,12 @@
 # domain/registry.py
 from typing import Optional
 
-from Hospital_System.domain.repository import QueueRecord
-from Hospital_System.domain.domain_service import QueueService
 from Hospital_System.domain.custom_error import RegistryNotConfiguredError
+from Hospital_System.domain.domain_service.queue_service import QueueService
+from Hospital_System.domain.interface.repository import QueueRecord
 
 
-class DomainRegistry():
+class DomainRegistry:
     _queue_service: Optional[QueueService] = None
 
     @classmethod
@@ -14,7 +14,7 @@ class DomainRegistry():
         cls._queue_service = QueueService(repo=queue_repo)
 
     @classmethod
-    def queue_service(cls) -> QueueService:
+    def queue_service(cls) -> QueueService | None:
         cls._validation_none_type()
         return cls._queue_service
 

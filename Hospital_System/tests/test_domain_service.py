@@ -8,9 +8,9 @@ from pytest import fixture, raises
 
 from Hospital_System.domain.custom_error import (DuplicationQueueError, InvalidStatusTransitionError,
      InvalidCancelRequestError)
-from Hospital_System.domain.domain_service import QueueService
+from Hospital_System.domain.domain_service.queue_service import QueueService
 from Hospital_System.domain.entities import Queue, Patient
-from Hospital_System.domain.repository import QueueRecord
+from Hospital_System.domain.interface.repository import QueueRecord
 from Hospital_System.domain.value_object import (
     Number, VitalSigns, BloodPressure, Weight, Height, Temperature,
     QueueStatus, Rights, PatientRights, Province, Address, DateOfBirth,
@@ -70,7 +70,7 @@ def vital_signs():
 def patient():
     return Patient(
         id=uuid.uuid4(),
-        nation_id=NationalID(id='1234567890123'),
+        national_id=NationalID(id='1234567890123'),
         first_name=Name(value='นนทพัฒน์'),
         last_name=Name(value='คนสุขภาพดี'),
         phone_number=PhoneNumber(value='0123456789'),

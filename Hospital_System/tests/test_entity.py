@@ -18,7 +18,7 @@ from Hospital_System.domain.value_object import (
 def patient():
     return Patient(
         id=uuid.uuid4(),
-        nation_id=NationalID(id='1234567890123'),
+        national_id=NationalID(id='1234567890123'),
         first_name=Name(value='นนทพัฒน์'),
         last_name=Name(value='คนสุขภาพดี'),
         phone_number=PhoneNumber(value='0123456789'),
@@ -45,7 +45,7 @@ def patient():
 
 def test_create_patient_is_validate(patient):
     assert patient.id is not None
-    assert patient.nation_id.id == '1234567890123'
+    assert patient.national_id.id == '1234567890123'
     assert patient.first_name.value == 'นนทพัฒน์'
     assert patient.phone_number == PhoneNumber(value='0123456789')
     assert patient.rights == Rights(rights_type=PatientRights.SOCIAL_SECURITY)
@@ -56,9 +56,9 @@ def test_should_raise_error_when_update_patient_id(patient):
         patient.id = uuid.uuid4()
 
 
-def test_should_raise_error_when_update_patient_nation_id(patient):
+def test_should_raise_error_when_update_patient_national_id(patient):
     with raises(ValueError):
-        patient.nation_id = NationalID(id='1111111111111')
+        patient.national_id = NationalID(id='1111111111111')
 
 
 def test_should_update_patient_phone_number(patient):

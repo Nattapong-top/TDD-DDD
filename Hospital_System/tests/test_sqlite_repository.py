@@ -1,11 +1,10 @@
 import os
 
-from pandas.core import sample
-
-from Hospital_System.domain.value_object import QueueStatus, Version, Diagnosis, MedicineInfo
-from Hospital_System.infrastructure.persistence.sqlite_repository import SqlQueueRepository
-from Hospital_System.tests.test_entity import patient, queue
 from pytest import fixture
+
+from Hospital_System.domain.value_object import QueueStatus, Diagnosis, MedicineInfo
+from Hospital_System.infrastructure.sqlite_queue_repository import SqlQueueRepository
+from Hospital_System.tests.test_entity import patient, queue
 
 
 @fixture

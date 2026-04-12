@@ -37,7 +37,7 @@ class Patient(DomainEntity):
         # รันทุกครั้งที่มีการ set ค่า field ใดๆ ใน object นี้
         # hasattr เช็คว่า field นั้นมีค่าอยู่แล้วหรือยัง
         # (ถ้ายังไม่มี = กำลังสร้างครั้งแรก → ให้ผ่าน)
-        if name in ('id', 'nation_id') and hasattr(self, name):
+        if name in ('id', 'national_id') and hasattr(self, name):
             raise ValueError(f'ห้ามเปลี่ยน {name} ครับ')
 
         # ถ้าไม่ใช่ field ต้องห้าม → ให้ Pydantic จัดการต่อตามปกติ

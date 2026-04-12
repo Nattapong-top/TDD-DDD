@@ -1,12 +1,12 @@
-# domain_service.py
+# queue_service.py
 from uuid import UUID
-from typing import Tuple
+from typing import Tuple, Optional
 
 from datetime import datetime, date
 
 from Hospital_System.domain.custom_error import DuplicationQueueError
 from Hospital_System.domain.entities import Queue
-from Hospital_System.domain.repository import QueueRecord
+from Hospital_System.domain.interface.repository import QueueRecord
 from Hospital_System.domain.value_object import Number, VitalSigns, QueueStatus, Diagnosis
 
 

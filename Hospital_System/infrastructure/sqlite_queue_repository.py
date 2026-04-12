@@ -4,8 +4,8 @@ from contextlib import closing
 from datetime import date
 from uuid import UUID
 
-from Hospital_System.domain.domain_service import Queue
-from Hospital_System.domain.repository import QueueRecord
+from Hospital_System.domain.domain_service.queue_service import Queue
+from Hospital_System.domain.interface.repository import QueueRecord
 from Hospital_System.domain.value_object import (
     QueueStatus, Version, VitalSigns, BloodPressure, Weight, Height,
     Temperature, Number, MedicineInfo, Diagnosis

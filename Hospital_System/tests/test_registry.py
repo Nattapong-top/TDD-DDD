@@ -3,9 +3,9 @@ import os
 
 from pytest import fixture, raises
 from Hospital_System.domain.registry import DomainRegistry
-from Hospital_System.domain.domain_service import QueueService
+from Hospital_System.domain.domain_service.queue_service import QueueService
 from Hospital_System.domain.custom_error import RegistryNotConfiguredError
-from Hospital_System.infrastructure.persistence.sqlite_repository import SqlQueueRepository
+from Hospital_System.infrastructure.sqlite_queue_repository import SqlQueueRepository
 from Hospital_System.tests.test_domain_service import FakeQueueRecord
 
 
