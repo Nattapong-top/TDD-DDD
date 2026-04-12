@@ -6,8 +6,8 @@ from uuid import UUID, uuid4
 
 from pydantic import BaseModel, ConfigDict
 
-from Hospital_System.domain.custom_error import (InvalidStatusTransitionError, MissingDiagnosisError, \
-     InvalidCancelRequestError)
+from Hospital_System.domain.custom_error import (
+    InvalidStatusTransitionError, MissingDiagnosisError, InvalidCancelRequestError)
 from Hospital_System.domain.value_object import (
     Name, PhoneNumber, DateOfBirth, Address, NationalID, Rights,
     LicenseNumber, MedicalSpecialty, Number, QueueStatus, VitalSigns,
@@ -23,7 +23,7 @@ class DomainEntity(BaseModel):
 
 class Patient(DomainEntity):
     id: UUID
-    nation_id: NationalID
+    national_id: NationalID
     first_name: Name
     last_name: Name
     phone_number: PhoneNumber
