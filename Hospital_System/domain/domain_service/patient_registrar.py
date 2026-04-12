@@ -36,7 +36,7 @@ class PatientRegistrar:
         return new_patient
 
     def _check_duplicate_national_id(self, national_id: NationalID):
-        existing_patient = self.repo.get_by_national_id(national_id=national_id.id)
+        existing_patient = self.repo.get_by_national_id(national_id=national_id)
         if existing_patient:
             raise DuplicateNationalIDError(f'เลขบัตรประชาชนนี้มีในระบบแล้ว: {national_id.id}')
 

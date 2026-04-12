@@ -2,22 +2,12 @@
 from pydantic import ValidationError
 from pytest import fixture, raises
 
+from Hospital_System.domain.custom_error import DuplicateNationalIDError
 from Hospital_System.domain.domain_service.patient_registrar import PatientRegistrar
-from Hospital_System.domain.entities import Patient
 from Hospital_System.domain.value_object import Address, Province, NationalID, Name, PhoneNumber, DateOfBirth, Rights, \
     PatientRights
-from Hospital_System.domain.custom_error import DuplicateNationalIDError
-
-
-class FakePatientRecord:
-    def __init__(self) -> None:
-        self.patients = {}
-
-    def save(self, patient: Patient) -> None:
-        self.patients[patient.id] = patient
-
-    def get_by_national_id(self, national_id: str) -> Patient | None:
-        return next((p for p in self.patients.values() if p.national_id.id == national_id), None)
+from Hospital_System.tests.fake_repository.fake_repository import (
+    FakePatientRecord, BrokenPatientRecord)
 
 
 @fixture
@@ -68,7 +58,7 @@ def test_registrar_patient_when_patient_valid(repo, registered_address, current_
 
     assert new_patient.national_id == NationalID(id='1234567890123')
     assert new_patient.rights.rights_type == PatientRights.SOCIAL_SECURITY
-    saved_patient = repo.get_by_national_id('1234567890123')
+    saved_patient = repo.get_by_national_id(NationalID(id='1234567890123'))
     assert saved_patient is not None
     assert new_patient.id == saved_patient.id
     assert saved_patient.national_id == NationalID(id='1234567890123')
@@ -114,15 +104,6 @@ def test_patient_registrar_should_raise_error_when_national_id_invalid(registrar
             rights=Rights(rights_type=PatientRights.SOCIAL_SECURITY)
         )
     assert '132456' in str(error.value)
-
-
-# เคสที่ 4: ระบบฐานข้อมูลมีปัญหา (Infrastructure Failure)
-class BrokenPatientRecord:
-    def save(self, patient: Patient) -> None:
-        raise RuntimeError('Database พัง save ไม่ได้')
-
-    def get_by_national_id(self, national_id: NationalID) -> None:
-        return None
 
 
 def test_patient_registrar_should_handle_repository_failure(registered_address, current_address):
