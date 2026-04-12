@@ -42,25 +42,63 @@ def patient():
 
 @fixture
 def test_db():
+    """เตรียมไฟล์ DB สำหรับเทสและลบทิ้งเมื่อเทสเสร็จ"""
     db_path = 'test_sqlite_patient_repository.db'
     if os.path.exists(db_path): os.remove(db_path)
 
     yield db_path
     if os.path.exists(db_path): os.remove(db_path)
 
+
 @fixture
 def repo(test_db):
+    """สร้าง Repository Instance สำหรับใช้ในเทส"""
     return SqlPatientRecord(db_path=test_db)
 
-
-
+# --- Test Cases: ไล่บี้ตั้งแต่ปกติจนถึงเคสแปลกๆ ---
 def test_sql_patient_record_should_save_retrieve_patient_when_info_valid(repo, patient):
+    """CASE 1: เซฟได้-ดึงได้ (Happy Path)"""
     repo.save(patient=patient)
     assert repo is not None
 
     retrieved = repo.get_by_national_id(national_id=patient.national_id)
     assert retrieved is not None
     assert retrieved.national_id == patient.national_id
-    assert retrieved == patient
+    assert retrieved == patient # Entity ต้องหน้าตาเหมือนเดิมเป๊ะ
 
 
+def test_sql_patient_record_should_raise_error_when_duplicate_national_id(repo, patient):
+    """CASE 2: ป้องกันเลขบัตรซ้ำ (Integrity Check)"""
+    repo.save(patient=patient)
+
+    # สร้างคนใหม่ (ID ใหม่) แต่ใช้เลขบัตรเดิม
+    duplicate_patient = patient.model_copy(update={'id': uuid.uuid4()})
+
+    with raises(DuplicateNationalIDError) as error:
+        repo.save(patient=duplicate_patient)
+    assert 'เลขบัตรประชาชนนี้มีในระบบแล้ว' in str(error.value)
+
+
+def test_sql_patient_record_should_return_none_when_patient_not_found(repo, patient):
+    """CASE 3: คืนค่า None เมื่อหาคนไข้ไม่เจอ (Sad Path)"""
+    not_found = repo.get_by_national_id(NationalID(id='0000000000000'))
+    assert not_found is None
+
+
+def test_sql_patient_record_handle_special_characters_and_long_strings(repo, patient):
+    """CASE 4: รองรับชื่อยาวและอักขระพิเศษ (Edge Case)"""
+    complex_name = Name(value="สมชาย 'สายฟ้า' มหานคร-อัครสถาน & *")
+    patient.first_name = complex_name
+
+    # อัปเดตที่อยู่ผ่าน model_copy เพราะเป็น Frozen Instance
+    new_address = patient.registered_address.model_copy(
+        update= {'street': "ถนน ๑๒๓/๔๕๖ (พิเศษ) & * ^ % $ # @"}
+    )
+    patient.registered_address = new_address
+
+    repo.save(patient=patient)
+    assert repo is not None
+
+    retrieved = repo.get_by_national_id(national_id=patient.national_id)
+    assert retrieved.registered_address.street == new_address.street
+    assert retrieved.first_name.value == complex_name.value
