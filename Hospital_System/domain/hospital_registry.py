@@ -27,11 +27,6 @@ class HospitalRegistry:
     _patient_registrar: Optional[PatientRegistrar] = None
 
     @classmethod
-    def set_db_path(cls, db_path: str):
-        """สำหรับเปลี่ยนชื่อไฟล์ DB (ใช้ตอนเทส)"""
-        cls._DB_PATH = db_path
-
-    @classmethod
     def configure(cls, queue_repo: QueueRecord) -> None:
         cls._queue_service = QueueService(repo=queue_repo)
 

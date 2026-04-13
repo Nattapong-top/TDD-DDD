@@ -68,3 +68,11 @@ def test_hospital_registry_should_get_patient_registrar_with_auto_wiring():
     assert isinstance(registrar, PatientRegistrar)
     # ตรวจว่าพยาบาลถือตู้ SQLite จริงหรือเปล่า
     assert isinstance(registrar.repo, SqlPatientRecord)
+
+
+def test_hospital_registry_should_return_same_when_call_patient_registrar_instance():
+    """เทสว่าเรียกกี่ครั้งก็ได้พยาบาลคนเดิม (Singleton) ไม่สร้างใหม่ฟุ่มเฟือย"""
+    first_call = HospitalRegistry.patient_registrar()
+    second_call = HospitalRegistry.patient_registrar()
+
+    assert first_call == second_call
