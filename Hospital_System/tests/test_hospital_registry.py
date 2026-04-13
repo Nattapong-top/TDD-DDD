@@ -9,7 +9,7 @@ from Hospital_System.domain.domain_service.patient_registrar import PatientRegis
 
 # --- โซนงานช่าง (Infrastructure): นำเข้าตู้เก็บของจริง ---
 from Hospital_System.infrastructure.sqlite_queue_repository import SqlQueueRepository
-from Hospital_System.infrastructure.sqlite_patient_repository import SqlPatientRecord
+from Hospital_System.infrastructure.sqlite_patient_repository import SqlPatientRepository
 from Hospital_System.tests.test_domain_service import FakeQueueRecord
 
 
@@ -71,7 +71,7 @@ def test_hospital_registry_should_get_patient_registrar_with_auto_wiring():
     # ตรวจความถูกต้อง
     assert isinstance(registrar, PatientRegistrar)
     # ตรวจว่าพยาบาลถือตู้ SQLite จริงหรือเปล่า
-    assert isinstance(registrar.repo, SqlPatientRecord)
+    assert isinstance(registrar.repo, SqlPatientRepository)
 
 
 def test_hospital_registry_should_return_same_when_call_patient_registrar_instance():

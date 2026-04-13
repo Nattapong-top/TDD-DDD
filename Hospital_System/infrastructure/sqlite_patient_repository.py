@@ -12,7 +12,7 @@ from Hospital_System.domain.value_object import (
 )
 
 
-class SqlPatientRecord(PatientRecord):
+class SqlPatientRepository(PatientRecord):
     """
     IMPLEMENTATION: สถาปัตยกรรมระดับ Infrastructure
     ทำหน้าที่คุยกับ SQLite โดยเฉพาะ โดยใช้หลักการ Hybrid (Flat Columns + JSON)

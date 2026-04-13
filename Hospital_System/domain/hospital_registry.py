@@ -7,7 +7,7 @@ from Hospital_System.domain.domain_service.queue_service import QueueService
 from Hospital_System.domain.interface.repository import QueueRecord
 
 # --- โซนงานช่าง (Infrastructure): นำเข้าตู้เก็บของจริง ---
-from Hospital_System.infrastructure.sqlite_patient_repository import SqlPatientRecord
+from Hospital_System.infrastructure.sqlite_patient_repository import SqlPatientRepository
 from Hospital_System.infrastructure.sqlite_queue_repository import SqlQueueRepository
 
 
@@ -48,7 +48,7 @@ class HospitalRegistry:
         # เช็คในใจก่อนว่า: "เราเคยจ้างพยาบาลคนนี้มาหรือยัง?" (ถ้าเป็น None คือยังไม่มี)
         if cls._patient_registrar is None:
             # ก) ถ้ายังไม่มี... ผู้อำนวยการจะไปเบิก 'ตู้เหล็กเก็บข้อมูลคนไข้' (SQLite Repo) มาก่อน
-            repo = SqlPatientRecord(db_path=cls._DB_PATH)
+            repo = SqlPatientRepository(db_path=cls._DB_PATH)
 
             # ข) จากนั้น 'จ้างพยาบาล' (สร้าง Registrar) แล้วยื่นตู้เหล็กให้พยาบาลถือไว้ทำงาน
             cls._patient_registrar = PatientRegistrar(repo=repo)

@@ -8,7 +8,7 @@ from Hospital_System.domain.entities import Patient
 from Hospital_System.domain.value_object import (
     NationalID, Name, PhoneNumber, DateOfBirth,
     Address, Province, Rights, PatientRights)
-from Hospital_System.infrastructure.sqlite_patient_repository import SqlPatientRecord
+from Hospital_System.infrastructure.sqlite_patient_repository import SqlPatientRepository
 
 
 @fixture
@@ -53,7 +53,7 @@ def test_db():
 @fixture
 def repo(test_db):
     """สร้าง Repository Instance สำหรับใช้ในเทส"""
-    return SqlPatientRecord(db_path=test_db)
+    return SqlPatientRepository(db_path=test_db)
 
 # --- Test Cases: ไล่บี้ตั้งแต่ปกติจนถึงเคสแปลกๆ ---
 def test_sql_patient_record_should_save_retrieve_patient_when_info_valid(repo, patient):
