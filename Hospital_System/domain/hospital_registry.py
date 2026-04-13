@@ -1,16 +1,14 @@
 # domain/hospital_registry.py
 from typing import Optional
 
-
 # --- โซนงานบริหาร (Domain Service): นำเข้าตัวพยาบาลและเจ้าหน้าที่ ---
-from Hospital_System.domain.custom_error import RegistryNotConfiguredError
 from Hospital_System.domain.domain_service.patient_registrar import PatientRegistrar
 from Hospital_System.domain.domain_service.queue_service import QueueService
 from Hospital_System.domain.interface.repository import QueueRecord
 
-
 # --- โซนงานช่าง (Infrastructure): นำเข้าตู้เก็บของจริง ---
 from Hospital_System.infrastructure.sqlite_patient_repository import SqlPatientRecord
+from Hospital_System.infrastructure.sqlite_queue_repository import SqlQueueRepository
 
 
 class HospitalRegistry:
@@ -27,12 +25,14 @@ class HospitalRegistry:
     _patient_registrar: Optional[PatientRegistrar] = None
 
     @classmethod
-    def configure(cls, queue_repo: QueueRecord) -> None:
+    def configure_queue(cls, queue_repo: QueueRecord) -> None:
         cls._queue_service = QueueService(repo=queue_repo)
 
     @classmethod
     def queue_service(cls) -> QueueService | None:
-        cls._validation_none_type()
+        if cls._queue_service is None:
+            repo = SqlQueueRepository(db_path=cls._DB_PATH)
+            cls._queue_service = QueueService(repo=repo)
         return cls._queue_service
 
     @classmethod
@@ -56,8 +56,3 @@ class HospitalRegistry:
         # ค) ส่งตัวพยาบาลที่พร้อมทำงาน (มีตู้เหล็กในมือแล้ว) กลับไปให้คนที่เรียกใช้
         return cls._patient_registrar
 
-
-    @classmethod
-    def _validation_none_type(cls):
-        if cls._queue_service is None:
-            raise RegistryNotConfiguredError('Queue Service ยังไม่ได้ Configure')

@@ -1,12 +1,11 @@
 # tests/test_hospital_registry.py
 import os
-from pytest import fixture, raises
+from pytest import fixture
 
 # --- โซนงานบริหาร (Domain Service): นำเข้าตัวพยาบาลและเจ้าหน้าที่ ---
 from Hospital_System.domain.hospital_registry import HospitalRegistry
 from Hospital_System.domain.domain_service.queue_service import QueueService
 from Hospital_System.domain.domain_service.patient_registrar import PatientRegistrar
-from Hospital_System.domain.custom_error import RegistryNotConfiguredError
 
 # --- โซนงานช่าง (Infrastructure): นำเข้าตู้เก็บของจริง ---
 from Hospital_System.infrastructure.sqlite_queue_repository import SqlQueueRepository
@@ -32,32 +31,37 @@ def fake_repo():
 
 
 @fixture
-def sql_repo():
+def queue_sql():
     return SqlQueueRepository(db_path='test.db')
 
 
-def test_hospital_registry_should_return_queue_service_after_configuration(fake_repo):
-    HospitalRegistry.configure(queue_repo=fake_repo)
+def test_hospital_registry_should_return_queue_service_when_fake_repo(fake_repo):
+    HospitalRegistry.configure_queue(queue_repo=fake_repo)
+    service = HospitalRegistry.queue_service()
+
+    assert isinstance(service, QueueService)
     assert isinstance(HospitalRegistry.queue_service(), QueueService)
+    assert service.repo == fake_repo # เช็คว่าได้ของปลอมตามที่สั่ง
 
 
-def test_hospital_registry_should_raise_error_when_access_before_configure():
-    HospitalRegistry._queue_service = None
-    with raises(RegistryNotConfiguredError) as err:
-        HospitalRegistry.queue_service()
+def test_hospital_registry_should_auto_wire_real_sqlite_repo(queue_sql):
+    queue_sql.create_schema()
+    HospitalRegistry.configure_queue(queue_repo=queue_sql)
+    service = HospitalRegistry.queue_service()
 
-    assert 'Queue Service ยังไม่ได้ Configure' in str(err.value)
+    assert isinstance(service, QueueService)
+    assert isinstance(service.repo, SqlQueueRepository)
+    assert service.repo == queue_sql
+    if os.path.exists('test.db'):
+        os.remove('test.db')
 
 
-def test_hospital_registry_should_configure_with_real_sqlite_repository(sql_repo):
-    sql_repo.create_schema()
-    HospitalRegistry.configure(queue_repo=sql_repo)
+def test_hospital_registry_should_real_sqlite_repository():
     service = HospitalRegistry.queue_service()
     assert isinstance(service, QueueService)
     assert isinstance(service.repo, SqlQueueRepository)
 
     assert isinstance(HospitalRegistry.queue_service(), QueueService)
-    os.remove('test.db')
 
 
 def test_hospital_registry_should_get_patient_registrar_with_auto_wiring():
