@@ -1,23 +1,39 @@
 #tests.test_patient_registrar
+import os
+
 from pydantic import ValidationError
 from pytest import fixture, raises
 
 from Hospital_System.domain.custom_error import DuplicateNationalIDError
 from Hospital_System.domain.domain_service.patient_registrar import PatientRegistrar
+from Hospital_System.domain.hospital_registry import HospitalRegistry
 from Hospital_System.domain.value_object import Address, Province, NationalID, Name, PhoneNumber, DateOfBirth, Rights, \
     PatientRights
+from Hospital_System.infrastructure.sqlite_patient_repository import SqlPatientRepository
 from Hospital_System.tests.fake_repository.fake_repository import (
-    FakePatientRecord, BrokenPatientRecord)
+    BrokenPatientRecord)
+
+
+# --- 1. Fixture สำหรับการจัดการไฟล์ DB ในการเทส ---
+@fixture(autouse=True)
+def clear_registry():
+    """ล้างค่าใน Registry ทุกครั้งก่อนและหลังเทสแต่ละเคส เพื่อไม่ให้ค่าค้าง"""
+    HospitalRegistry.reset()
+    yield
+    HospitalRegistry.reset()
+    # ลบไฟล์ DB ที่อาจจะเกิดขึ้นจากการเทส (ถ้ามี)
+    if os.path.exists('hospital_database.db'):
+        os.remove('hospital_database.db')
 
 
 @fixture
-def repo() -> FakePatientRecord:
-    return FakePatientRecord()
+def repo() -> SqlPatientRepository:
+    return SqlPatientRepository('hospital_database.db')
 
 
 @fixture
-def registrar(repo) -> PatientRegistrar:
-    return PatientRegistrar(repo=repo)
+def registrar() -> PatientRegistrar:
+    return HospitalRegistry.patient_registrar()
 
 
 @fixture
@@ -62,6 +78,7 @@ def test_registrar_patient_when_patient_valid(repo, registered_address, current_
     assert saved_patient is not None
     assert new_patient.id == saved_patient.id
     assert saved_patient.national_id == NationalID(id='1234567890123')
+    assert saved_patient.version.number == 1
 
 
 def test_registrar_patient_should_raise_error_when_duplicate_national_id(registrar, registered_address,
@@ -123,3 +140,51 @@ def test_patient_registrar_should_handle_repository_failure(registered_address, 
         )
 
     assert "Database พัง save ไม่ได้" in str(excinfo.value)
+
+
+def test_patient_registrar_should_update_patient_info_through_repository(registered_address, current_address, registrar, repo):
+    new_patient = registrar.register_new_patient(
+        national_id=NationalID(id='1234567890123'),
+        first_name=Name(value='นนทพัฒน์'),
+        last_name=Name(value='คนสุขภาพดี'),
+        phone_number=PhoneNumber(value='0123456789'),
+        date_of_birth=DateOfBirth(year=1990, month=12, day=31),
+        registered_address=registered_address,
+        current_address=current_address,
+        rights=Rights(rights_type=PatientRights.SOCIAL_SECURITY)
+    )
+    new_phone = PhoneNumber(value='099-999-9999')
+    new_patient.update_phone_number(new_phone)
+
+    registrar.update_patient_info(new_patient)
+
+    updated_in_repo = repo.get_by_national_id(new_patient.national_id)
+    assert updated_in_repo.phone_number == new_phone
+    assert updated_in_repo.version.number == 2
+
+def test_patient_registrar_should_increment_version_when_update_patient_info(
+        registered_address, current_address, registrar, repo
+):
+    new_patient = registrar.register_new_patient(
+        national_id=NationalID(id='1234567890123'),
+        first_name=Name(value='นนทพัฒน์'),
+        last_name=Name(value='คนสุขภาพดี'),
+        phone_number=PhoneNumber(value='0123456789'),
+        date_of_birth=DateOfBirth(year=1990, month=12, day=31),
+        registered_address=registered_address,
+        current_address=current_address,
+        rights=Rights(rights_type=PatientRights.SOCIAL_SECURITY)
+    )
+    new_phone = PhoneNumber(value='099-999-9999')
+    new_patient.update_phone_number(new_phone)
+    registrar.update_patient_info(new_patient)
+    updated_in_repo = repo.get_by_national_id(new_patient.national_id)
+    assert updated_in_repo.phone_number == new_phone
+    assert updated_in_repo.version.number == 2
+
+    new_right = Rights(rights_type=PatientRights.COMPANY_INSURANCE)
+    new_patient.update_rights(new_right)
+    registrar.update_patient_info(new_patient)
+    updated_in_repo = repo.get_by_national_id(new_patient.national_id)
+    assert updated_in_repo.rights == new_right
+    assert updated_in_repo.version.number == 3
