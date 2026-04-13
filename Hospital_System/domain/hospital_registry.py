@@ -1,4 +1,4 @@
-# domain/registry.py
+# domain/hospital_registry.py
 from typing import Optional
 
 from Hospital_System.domain.custom_error import RegistryNotConfiguredError
@@ -6,7 +6,7 @@ from Hospital_System.domain.domain_service.queue_service import QueueService
 from Hospital_System.domain.interface.repository import QueueRecord
 
 
-class DomainRegistry:
+class QueueRegistry:
     _queue_service: Optional[QueueService] = None
 
     @classmethod
