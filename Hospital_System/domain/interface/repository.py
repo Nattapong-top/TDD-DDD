@@ -28,8 +28,14 @@ class QueueRecord(ABC):
 class PatientRecord(ABC):
     @abstractmethod
     def save(self, patient: Patient) -> None:
-        """บันทึกหรืออัปเดตข้อมูลคนไข้"""
+        """บันทึกข้อมูลคนไข้"""
         pass
+
+    @abstractmethod
+    def update(self, patient: Patient) -> None:
+        """อัปเดตข้อมูลคนไข้"""
+        pass
+
 
     @abstractmethod
     def get_by_national_id(self, national_id: NationalID) -> Optional[Patient]:

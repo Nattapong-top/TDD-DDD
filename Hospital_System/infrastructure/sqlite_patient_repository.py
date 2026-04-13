@@ -8,7 +8,7 @@ from Hospital_System.domain.entities import Patient
 from Hospital_System.domain.interface.repository import PatientRecord
 from Hospital_System.domain.value_object import (
     NationalID, PhoneNumber, Name, Address, Rights,
-    PatientRights, DateOfBirth
+    PatientRights, DateOfBirth, Version
 )
 
 
@@ -29,16 +29,37 @@ class SqlPatientRepository(PatientRecord):
             date_of_birth TEXT,    -- เก็บเป็น JSON
             registered_address TEXT, -- เก็บเป็น JSON
             current_address TEXT,    -- เก็บเป็น JSON
-            rights TEXT
+            rights TEXT,
+            version INTEGER DEFAULT 1
         )
     """
 
     _INSERT_PATIENT_QUERY = """
         INSERT INTO patient (
-            id, national_id, first_name, last_name, 
-            phone_number, date_of_birth, registered_address, 
-            current_address, rights
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            id, 
+            national_id, 
+            first_name, 
+            last_name, 
+            phone_number, 
+            date_of_birth, 
+            registered_address, 
+            current_address, 
+            rights,
+            version
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """
+
+    _UPDATE_QUERY = """
+        UPDATE patient SET 
+            first_name = ?, 
+            last_name = ?, 
+            phone_number = ?, 
+            date_of_birth = ?, 
+            registered_address = ?, 
+            current_address = ?, 
+            rights = ?,
+            version = ?
+            WHERE id = ? AND version = ?
     """
 
     _SELECT_BY_NATIONAL_ID_QUERY = "SELECT * FROM patient WHERE national_id = ?"
@@ -73,6 +94,18 @@ class SqlPatientRepository(PatientRecord):
                 raise DuplicateNationalIDError(f'เลขบัตรประชาชนนี้มีในระบบแล้ว: {patient.national_id.id}')
             raise error
 
+    def update(self, patient: Patient) -> None:
+        # ดึงเลขเวอร์ชันปัจจุบันจากในตู้ (ที่ส่งมาจาก Entity คือตัวที่ increment แล้ว)
+        current_version, old_version = self._check_version(patient)
+
+        data = self._map_entity_patient_update(current_version, old_version, patient)
+
+        with closing(self._get_connection()) as conn:
+            with conn:
+                cursor = conn.execute(self._UPDATE_QUERY, data)
+                if cursor.rowcount == 0:
+                    raise RuntimeError(f'มีคนอื่น update ข้อมูลคนไข้ไปแล้วก่อนหน้านี้')
+
     def get_by_national_id(self, national_id: NationalID) -> Optional[Patient]:
         """ค้นหาและปั้นร่าง (Rehydrate) ข้อมูลกลับเป็น Entity"""
         with closing(self._get_connection()) as conn:
@@ -92,7 +125,8 @@ class SqlPatientRepository(PatientRecord):
             patient.date_of_birth.model_dump_json(),  # แปลง VO เป็น JSON
             patient.registered_address.model_dump_json(),  # แปลง VO เป็น JSON
             patient.current_address.model_dump_json(),  # แปลง VO เป็น JSON
-            patient.rights.rights_type.value
+            patient.rights.rights_type.value,
+            patient.version.number,
         )
 
     def _map_row_to_entity(self, row: sqlite3.Row) -> Patient:
@@ -106,5 +140,29 @@ class SqlPatientRepository(PatientRecord):
             date_of_birth=DateOfBirth.model_validate_json(row['date_of_birth']),
             registered_address=Address.model_validate_json(row['registered_address']),
             current_address=Address.model_validate_json(row['current_address']),
-            rights=Rights(rights_type=PatientRights(row['rights']))
+            rights=Rights(rights_type=PatientRights(row['rights'])),
+            version=Version(number=row['version'])
         )
+
+    def _check_version(self, patient: Patient) -> tuple[int, int]:
+        current_version = patient.version.number
+        old_version = current_version - 1
+        return current_version, old_version
+
+    def _map_entity_patient_update(self, current_version: int, old_version: int,
+                                   patient: Patient) -> tuple[str, str, str, str,
+    str, str, str, int, str, int]:
+
+        data = (
+            patient.first_name.value,
+            patient.last_name.value,
+            patient.phone_number.value,
+            patient.date_of_birth.model_dump_json(),  # แปลง VO เป็น JSON
+            patient.registered_address.model_dump_json(),  # แปลง VO เป็น JSON
+            patient.current_address.model_dump_json(),  # แปลง VO เป็น JSON
+            patient.rights.rights_type.value,
+            current_version,
+            str(patient.id),
+            old_version
+        )
+        return data

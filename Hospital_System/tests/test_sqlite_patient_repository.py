@@ -56,7 +56,7 @@ def repo(test_db):
     return SqlPatientRepository(db_path=test_db)
 
 # --- Test Cases: ไล่บี้ตั้งแต่ปกติจนถึงเคสแปลกๆ ---
-def test_sql_patient_record_should_save_retrieve_patient_when_info_valid(repo, patient):
+def test_sql_patient_repository_should_save_retrieve_patient_when_info_valid(repo, patient):
     """CASE 1: เซฟได้-ดึงได้ (Happy Path)"""
     repo.save(patient=patient)
     assert repo is not None
@@ -67,7 +67,7 @@ def test_sql_patient_record_should_save_retrieve_patient_when_info_valid(repo, p
     assert retrieved == patient # Entity ต้องหน้าตาเหมือนเดิมเป๊ะ
 
 
-def test_sql_patient_record_should_raise_error_when_duplicate_national_id(repo, patient):
+def test_sql_patient_repository_should_raise_error_when_duplicate_national_id(repo, patient):
     """CASE 2: ป้องกันเลขบัตรซ้ำ (Integrity Check)"""
     repo.save(patient=patient)
 
@@ -79,13 +79,13 @@ def test_sql_patient_record_should_raise_error_when_duplicate_national_id(repo, 
     assert 'เลขบัตรประชาชนนี้มีในระบบแล้ว' in str(error.value)
 
 
-def test_sql_patient_record_should_return_none_when_patient_not_found(repo, patient):
+def test_sql_patient_repository_should_return_none_when_patient_not_found(repo, patient):
     """CASE 3: คืนค่า None เมื่อหาคนไข้ไม่เจอ (Sad Path)"""
     not_found = repo.get_by_national_id(NationalID(id='0000000000000'))
     assert not_found is None
 
 
-def test_sql_patient_record_handle_special_characters_and_long_strings(repo, patient):
+def test_sql_patient_repository_handle_special_characters_and_long_strings(repo, patient):
     """CASE 4: รองรับชื่อยาวและอักขระพิเศษ (Edge Case)"""
     complex_name = Name(value="สมชาย 'สายฟ้า' มหานคร-อัครสถาน & *")
     patient.first_name = complex_name
@@ -102,3 +102,38 @@ def test_sql_patient_record_handle_special_characters_and_long_strings(repo, pat
     retrieved = repo.get_by_national_id(national_id=patient.national_id)
     assert retrieved.registered_address.street == new_address.street
     assert retrieved.first_name.value == complex_name.value
+
+def test_sql_patient_repository_should_save_retrieve_patient_with_version(repo, patient):
+    repo.save(patient=patient)
+    retrieved = repo.get_by_national_id(patient.national_id)
+
+    assert retrieved is not None
+    assert retrieved == patient
+    assert retrieved.version.number == 1
+
+def test_sql_patient_repository_should_update_phone_number_and_increment_version(repo, patient):
+    repo.save(patient=patient)
+    new_phone = PhoneNumber(value='0999999999')
+
+    patient.update_phone_number(new_phone)
+    repo.update(patient=patient)
+
+    updated = repo.get_by_national_id(national_id=patient.national_id)
+    assert updated.phone_number.value == '0999999999'
+    assert updated.version.number == 2
+
+def test_sql_patient_repository_should_raise_error_when_concurrency_conflict(repo, patient):
+    repo.save(patient=patient)
+
+    nurse_a_view = repo.get_by_national_id(national_id=patient.national_id)
+    nurse_b_view = repo.get_by_national_id(national_id=patient.national_id)
+
+    nurse_a_view.update_first_name(Name(value="สมชาย 'สายฟ้า' มหานคร-อัครสถาน & *"))
+    repo.update(nurse_a_view)
+
+    nurse_b_view.update_first_name(Name(value="มหานครอัครสถาน"))
+
+    with raises(RuntimeError) as error:
+        repo.update(nurse_b_view)
+
+    assert 'update' in str(error.value)

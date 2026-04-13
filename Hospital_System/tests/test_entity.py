@@ -39,7 +39,8 @@ def patient():
             province=Province.BANGKOK,
             postal_code='10200'
         ),
-        rights=Rights(rights_type=PatientRights.SOCIAL_SECURITY)
+        rights=Rights(rights_type=PatientRights.SOCIAL_SECURITY),
+        version=Version(number=1)
     )
 
 
@@ -49,6 +50,7 @@ def test_create_patient_is_validate(patient):
     assert patient.first_name.value == 'นนทพัฒน์'
     assert patient.phone_number == PhoneNumber(value='0123456789')
     assert patient.rights == Rights(rights_type=PatientRights.SOCIAL_SECURITY)
+    assert patient.version == Version(number=1)
 
 
 def test_should_raise_error_when_update_patient_id(patient):
@@ -65,6 +67,7 @@ def test_should_update_patient_phone_number(patient):
     new_phone_number = PhoneNumber(value='0999999999')
     patient.update_phone_number(new_phone_number)
     assert patient.phone_number == new_phone_number
+    assert patient.version == Version(number=2)
 
 
 def test_should_update_current_address(patient):
@@ -78,12 +81,14 @@ def test_should_update_current_address(patient):
     )
     patient.update_current_address(new_current_address)
     assert patient.current_address == new_current_address
+    assert patient.version == Version(number=2)
 
 
 def test_should_update_rights(patient):
     new_rights = Rights(rights_type=PatientRights.COMPANY_INSURANCE)
     patient.update_rights(new_rights)
     assert patient.rights == new_rights
+    assert patient.version == Version(number=2)
 
 
 def test_should_raise_error_when_update_rights_invalid_type(patient):
@@ -95,12 +100,14 @@ def test_should_update_first_name(patient):
     new_first_name = Name(value='นันทวัน')
     patient.update_first_name(new_first_name)
     assert patient.first_name == new_first_name
+    assert patient.version == Version(number=2)
 
 
 def test_should_update_last_name(patient):
     new_last_name = Name(value='คนมั่งคั่ง')
     patient.update_last_name(new_last_name)
     assert patient.last_name == new_last_name
+    assert patient.version == Version(number=2)
 
 
 # ส่วนทดสอบ Entity Doctor

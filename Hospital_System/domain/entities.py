@@ -31,6 +31,7 @@ class Patient(DomainEntity):
     registered_address: Address
     current_address: Address
     rights: Rights
+    version: Version = Field(default=Version(number=1))
 
     def __setattr__(self, name: str, value) -> None:
         # ป้องกันการเปลี่ยนค่า field ที่ห้ามแก้ไข
@@ -45,18 +46,23 @@ class Patient(DomainEntity):
 
     def update_phone_number(self, new_phone_number: PhoneNumber) -> None:
         self.phone_number = new_phone_number
+        self.version = self.version.increment()
 
     def update_current_address(self, new_address: Address) -> None:
         self.current_address = new_address
+        self.version = self.version.increment()
 
     def update_rights(self, new_rights: Rights) -> None:
         self.rights = new_rights
+        self.version = self.version.increment()
 
     def update_first_name(self, new_first_name: Name) -> None:
         self.first_name = new_first_name
+        self.version = self.version.increment()
 
     def update_last_name(self, new_last_name: Name) -> None:
         self.last_name = new_last_name
+        self.version = self.version.increment()
 
 
 class Doctor(DomainEntity):
@@ -112,7 +118,6 @@ class Queue(DomainEntity):
         self.diagnosis = diagnosis
         self.version = self.version.increment()
 
-
     def cancel_visit(self) -> None:
         self._validate_cancellation()
         self.status = QueueStatus.CANCELLED
@@ -132,4 +137,3 @@ class Queue(DomainEntity):
     def _validate_status(self):
         if self.status != QueueStatus.WAITING:
             raise ValueError(f'ไม่สามารถเริ่มตรวจได้ เพราะสถานปัจจบันคือ {self.status.value}')
-

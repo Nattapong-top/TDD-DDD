@@ -13,6 +13,8 @@ class FakePatientRecord(PatientRecord):
     def get_by_national_id(self, national_id: NationalID) -> Patient | None:
         return next((p for p in self.patients.values() if p.national_id == national_id), None)
 
+    def update(self, patient: Patient) -> None:
+        pass
 
 # เคสที่ 4: ระบบฐานข้อมูลมีปัญหา (Infrastructure Failure)
 class BrokenPatientRecord(PatientRecord):
@@ -21,3 +23,6 @@ class BrokenPatientRecord(PatientRecord):
 
     def get_by_national_id(self, national_id: NationalID) -> None:
         return None
+
+    def update(self, patient: Patient) -> None:
+        pass
