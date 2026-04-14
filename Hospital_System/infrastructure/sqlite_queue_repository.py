@@ -18,18 +18,37 @@ class SqlQueueRepository(QueueRecord):
     # =====================================================================
     _CREATE_SCHEMA_QUERY = '''
         CREATE TABLE IF NOT EXISTS queue (
-            q_id TEXT PRIMARY KEY, p_id TEXT NOT NULL, p_num INTEGER NOT NULL,
-            q_date TEXT NOT NULL, status TEXT NOT NULL, ver INTEGER NOT NULL,
-            bp_sys INTEGER, bp_dia INTEGER, w_kg REAL, h_cm REAL, temp_c REAL,
-            symptom TEXT, diag_disease TEXT, diag_treatment TEXT, diag_meds TEXT
+            q_id TEXT PRIMARY KEY, 
+            p_id TEXT NOT NULL, 
+            p_num INTEGER NOT NULL,
+            q_date TEXT NOT NULL, 
+            status TEXT NOT NULL, 
+            ver INTEGER DEFAULT 1,
+            bp_sys INTEGER, 
+            bp_dia INTEGER, 
+            w_kg REAL, 
+            h_cm REAL, 
+            temp_c REAL,
+            symptom TEXT, 
+            diag_disease TEXT, 
+            diag_treatment TEXT, 
+            diag_meds TEXT
         )
     '''
 
-    _UPSERT_QUEUE_QUERY = '''
-        INSERT OR REPLACE INTO queue
+    _INSERT_QUEUE_QUERY = '''
+        INSERT INTO queue
         (q_id, p_id, p_num, q_date, status, ver, bp_sys, bp_dia, 
         w_kg, h_cm, temp_c, symptom, diag_disease, diag_treatment, diag_meds)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    '''
+
+    _UPDATE_QUEUE_QUERY = '''
+        UPDATE queue SET
+        status = ?, ver = ?,
+        bp_sys = ?, bp_dia = ?, w_kg = ?, h_cm = ?, temp_c = ?, 
+        symptom = ?, diag_disease = ?, diag_treatment = ?, diag_meds = ?
+        WHERE q_id = ? AND ver = ? 
     '''
 
     _SELECT_BY_ID_QUERY = 'SELECT * FROM queue WHERE q_id = ?'
@@ -55,10 +74,42 @@ class SqlQueueRepository(QueueRecord):
         """เปิดประตู -> แปลงของลงกล่อง -> ยัดใส่ DB"""
         with closing(self._get_connection()) as conn:
             with conn:
+                res = conn.execute(self._SELECT_BY_ID_QUERY, (str(queue.id),))
+                is_new = res.fetchone() is None
+
                 diag_data = self._prepare_diagnosis(queue)
-                # โยนหน้าที่สร้าง Tuple 15 ตัวไปให้ Helper จบปิ๊ง!
-                data_tuple = self._map_entity_to_tuple(queue, diag_data)
-                conn.execute(self._UPSERT_QUEUE_QUERY, data_tuple)
+
+                if is_new:
+                    # ถ้าเป็นของใหม่ ใช้ INSERT ธรรมดา
+                    data_tuple = self._map_entity_to_tuple(queue, diag_data)
+                    conn.execute(self._INSERT_QUEUE_QUERY, data_tuple)
+                else:
+                    # 🚩 2. ถ้าของเดิมมีอยู่แล้ว ต้องใช้ UPDATE + Version Check เท่านั้น!
+                    current_ver = queue.version.number
+                    old_ver = queue.version.number - 1
+
+                    data = (
+                        queue.status.value,
+                        current_ver,  # เลขใหม่
+                        queue.vital_signs.blood_pressure.systolic,
+                        queue.vital_signs.blood_pressure.diastolic,
+                        queue.vital_signs.weight.value,
+                        queue.vital_signs.height.value,
+                        queue.vital_signs.temperature.value,
+                        queue.vital_signs.symptom,
+                        diag_data["disease"],
+                        diag_data["treatment"],
+                        diag_data["meds"],
+                        str(queue.id),
+                        old_ver  # 🚩 ต้อง WHERE ด้วยเลขเก่า
+                    )
+
+                    cursor = conn.execute(self._UPDATE_QUEUE_QUERY, data)
+
+                    # 🚩 3. ถ้าไม่มีแถวไหนถูกอัปเดต แปลว่า Version ไม่ตรง!
+                    if cursor.rowcount == 0:
+                        raise RuntimeError("ข้อมูลใบคิวถูก update โดยผู้อื่นไปก่อนหน้าแล้ว")
+
 
     def get_by_queue_id(self, queue_id: UUID) -> Queue | None:
         with closing(self._get_connection()) as conn:
@@ -94,11 +145,18 @@ class SqlQueueRepository(QueueRecord):
     def _map_entity_to_tuple(self, queue: Queue, diag_data: dict) -> tuple:
         """แปลง Object เป็น Tuple เพื่อส่งให้ SQLite"""
         return (
-            str(queue.id), str(queue.patient_id), queue.queue_number.id,
-            queue.queue_date.isoformat(), queue.status.value, queue.version.number,
-            queue.vital_signs.blood_pressure.systolic, queue.vital_signs.blood_pressure.diastolic,
-            queue.vital_signs.weight.value, queue.vital_signs.height.value,
-            queue.vital_signs.temperature.value, queue.vital_signs.symptom,
+            str(queue.id),
+            str(queue.patient_id),
+            queue.queue_number.id,
+            queue.queue_date.isoformat(),
+            queue.status.value,
+            queue.version.number,
+            queue.vital_signs.blood_pressure.systolic,
+            queue.vital_signs.blood_pressure.diastolic,
+            queue.vital_signs.weight.value,
+            queue.vital_signs.height.value,
+            queue.vital_signs.temperature.value,
+            queue.vital_signs.symptom,
             diag_data["disease"], diag_data["treatment"], diag_data["meds"]
         )
 
@@ -113,9 +171,13 @@ class SqlQueueRepository(QueueRecord):
             )
 
         return Queue(
-            id=UUID(row['q_id']), patient_id=UUID(row['p_id']), queue_number=Number(id=row['p_num']),
-            queue_date=date.fromisoformat(row['q_date']), status=QueueStatus(row['status']),
-            version=Version(number=row['ver']), vital_signs=VitalSigns(
+            id=UUID(row['q_id']),
+            patient_id=UUID(row['p_id']),
+            queue_number=Number(id=row['p_num']),
+            queue_date=date.fromisoformat(row['q_date']),
+            status=QueueStatus(row['status']),
+            version=Version(number=row['ver']),
+            vital_signs=VitalSigns(
                 blood_pressure=BloodPressure(systolic=row['bp_sys'], diastolic=row['bp_dia']),
                 weight=Weight(value=row['w_kg']), height=Height(value=row['h_cm']),
                 temperature=Temperature(value=row['temp_c']), symptom=row['symptom']

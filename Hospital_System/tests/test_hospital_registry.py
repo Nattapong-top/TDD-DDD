@@ -10,7 +10,7 @@ from Hospital_System.domain.domain_service.patient_registrar import PatientRegis
 # --- โซนงานช่าง (Infrastructure): นำเข้าตู้เก็บของจริง ---
 from Hospital_System.infrastructure.sqlite_queue_repository import SqlQueueRepository
 from Hospital_System.infrastructure.sqlite_patient_repository import SqlPatientRepository
-from Hospital_System.tests.test_domain_service import FakeQueueRecord
+from Hospital_System.tests.test_queue_service import FakeQueueRecord
 
 
 # --- 1. Fixture สำหรับการจัดการไฟล์ DB ในการเทส ---
