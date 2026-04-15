@@ -72,6 +72,7 @@ class SqlQueueRepository(QueueRecord):
     # =====================================================================
     def __init__(self, db_path: str) -> None:
         self.db_path = db_path
+        self.create_schema()
 
     def _get_connection(self) -> sqlite3.Connection:
         conn = sqlite3.connect(self.db_path)

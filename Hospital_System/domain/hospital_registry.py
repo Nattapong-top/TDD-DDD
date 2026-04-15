@@ -25,6 +25,21 @@ class HospitalRegistry:
     _patient_registrar: Optional[PatientRegistrar] = None
 
     @classmethod
+    def init_database(cls):
+        """คำสั่งด่วนจาก ผอ.: ให้ช่างเหล็กไปสร้างตารางที่จำเป็นทั้งหมดให้เสร็จ!"""
+        # 1. เบิกตัวช่างเหล็ก (Repository)
+        from Hospital_System.infrastructure.sqlite_patient_repository import SqlPatientRepository
+        from Hospital_System.infrastructure.sqlite_queue_repository import SqlQueueRepository
+
+        SqlPatientRepository(db_path=cls._DB_PATH)
+        queue_repo = SqlQueueRepository(db_path=cls._DB_PATH)
+
+        # 2. สั่งให้ช่างเหล็กสร้างตาราง (ป๋าต้องไปเขียนฟังก์ชัน create_table ใน Repository ด้วยนะ)
+
+        queue_repo.create_schema()
+        print("🏗️  สร้างตารางคนไข้และคิวในฐานข้อมูลเรียบร้อย!")
+
+    @classmethod
     def configure_queue(cls, queue_repo: QueueRecord) -> None:
         cls._queue_service = QueueService(repo=queue_repo)
 
@@ -40,6 +55,11 @@ class HospitalRegistry:
         """ล้างสมองผู้อำนวยการ: ให้ลืมทุกคนที่เคยจ้างมา (จำเป็นมากตอนรันเทสหลายๆ รอบ)"""
         cls._patient_registrar = None
         cls._queue_service = None
+
+    @classmethod
+    def patient_repo(cls) -> SqlPatientRepository:
+        """เมธอดใหม่: สำหรับเบิกเฉพาะ 'ตู้เหล็กคนไข้'"""
+        return SqlPatientRepository(db_path=cls._DB_PATH)
 
     @classmethod
     def patient_registrar(cls) -> PatientRegistrar | None:
