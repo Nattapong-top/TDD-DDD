@@ -221,3 +221,8 @@ __marimo__/
 /.idea/inspectionProfiles/Project_Default.xml
 /.idea/TDD-DDD.iml
 /.idea/vcs.xml
+/.idea/dbnavigator.xml
+/Hospital_System/Dockerfile
+/.idea/material_theme_project_new.xml
+/new_dir_and_file.py
+/pytest.ini

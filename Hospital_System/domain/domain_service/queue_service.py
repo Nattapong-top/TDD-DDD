@@ -43,13 +43,13 @@ class QueueService:
         self.repo.save(queue)
         return queue
 
-    def get_active_queue_by_patient(self, patient_id: UUID) -> Queue | None:
+    def get_active_queue_by_patient(self, patient_id: UUID, search_date: date = None) -> Queue | None:
         """เป็นปุ่มกดให้คนนอก (เช่น เทส หรือ Registrar) มาถามหาคิวที่ยัง Active อยู่"""
-        # 1. เตรียมข้อมูลวันที่วันนี้
-        today = date.today()
+        # 🚩 ถ้าป๋าส่งวันที่มาให้ใช้วันนั้น ถ้าไม่ส่งให้ใช้วันนี้
+        target_date = search_date or date.today()
         # 2. สั่งให้ช่างเหล็ก (Repo) มุดตู้ไปหามาให้
         # (นี่คือจุดที่มันจะวิ่งไปเรียก SQL
-        return self.repo.find_active_queue_by_patient(patient_id=patient_id, queue_date=today)
+        return self.repo.find_active_queue_by_patient(patient_id=patient_id, queue_date=target_date)
 
     def get_next_number(self, last_number: Number, last_date: date, time_now: date,
                         today: date) -> Tuple[Number,date, date]:

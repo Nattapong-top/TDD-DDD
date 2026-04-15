@@ -18,7 +18,10 @@ class PatientRegistrar:
                              national_id: NationalID, first_name: Name, last_name: Name,
                              phone_number: PhoneNumber, date_of_birth: DateOfBirth,
                              registered_address: Address, current_address: Address,
-                             rights: Rights, vital_signs: VitalSigns) -> Patient:
+                             rights: Rights, vital_signs: VitalSigns,
+                             registration_date: date = None) -> Patient:
+
+        today = registration_date or date.today()
 
         self._check_duplicate_national_id(national_id)
 
@@ -37,7 +40,7 @@ class PatientRegistrar:
         self._save_patient(new_patient)
         self.queue_service.issue_new_queue(
             patient_id=new_patient.id,
-            today=date.today(), # หนี้เก่า ว่างจะเคลียร์
+            today=today, # หนี้เก่า ว่างจะเคลียร์
             vital_signs=vital_signs
         )
         return new_patient
