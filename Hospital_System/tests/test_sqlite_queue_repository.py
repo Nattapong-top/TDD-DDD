@@ -1,111 +1,62 @@
 import os
-from datetime import date
 
-from pytest import fixture, raises
+from pytest import raises
 
-from Hospital_System.domain.entities import Queue
-from Hospital_System.domain.hospital_registry import HospitalRegistry
 from Hospital_System.domain.value_object import (
-    QueueStatus, Diagnosis, MedicineInfo, Number, VitalSigns, BloodPressure, \
-    Weight, Height, Temperature, Version)
-from Hospital_System.infrastructure.sqlite_queue_repository import SqlQueueRepository
-from Hospital_System.tests.test_entity import patient
+    QueueStatus, Diagnosis, MedicineInfo)
 
-@fixture
-def queue(patient):
-    return Queue(
-        patient_id=patient.id,
-        queue_number=Number(id=1),
-        queue_date=date.today(),
-        vital_signs=VitalSigns(
-            blood_pressure=BloodPressure(systolic=120, diastolic=80),
-            weight=Weight(value=80),
-            height=Height(value=177),
-            temperature=Temperature(value=39.0),
-            symptom='น้ำหมูกไหล ปวดหัว ตัวร้อน หนาวสั่น'
-        ),
-        status=QueueStatus.WAITING,
-        version=Version(number=1)
-    )
-@fixture
-def diagnosis(patient):
-    return Diagnosis(
-        disease='ไข้ทั่วไป',
-        treatment='พักผ่านให้เพียงพอและดื่มน้ำมากๆ',
-        medicine_prescribed=[MedicineInfo(
-            name='Paracetamol',
-            strength='500mg',
-            frequency='วันละ 3 ครั้ง หลักอาหาร'
-        )]
-    )
 
-@fixture(autouse=True)
-def repo():
-    db_path = 'test_hospital.db'
-    if os.path.exists(db_path): os.remove(db_path)
-    return SqlQueueRepository(db_path=db_path)
-
-@fixture(autouse=True)
-def clear_registry():
-    """ล้างค่าใน Registry ทุกครั้งก่อนและหลังเทสแต่ละเคส เพื่อไม่ให้ค่าค้าง"""
-    HospitalRegistry.reset()
-    yield
-    HospitalRegistry.reset()
-    # ลบไฟล์ DB ที่อาจจะเกิดขึ้นจากการเทส (ถ้ามี)
-    if os.path.exists('test_hospital.db'):
-        os.remove('test_hospital.db')
-
-def test_sqlite_repo_should_save_and_retrieve_queue(patient, queue, repo):
-    repo.create_schema()
+def test_sqlite_queue_repo_should_save_and_retrieve_queue(patient, queue, queue_repo):
+    queue_repo.create_schema()
     pa_queue = queue
-    repo.save(pa_queue)
+    queue_repo.save(pa_queue)
 
-    retrieved = repo.get_by_queue_id(pa_queue.id)
+    retrieved = queue_repo.get_by_queue_id(pa_queue.id)
     assert retrieved.id == pa_queue.id
     assert retrieved.patient_id == pa_queue.patient_id
     assert retrieved.vital_signs.blood_pressure.systolic == 120
     assert retrieved.vital_signs.temperature.value == 39.0
     assert retrieved.vital_signs.symptom == 'น้ำหมูกไหล ปวดหัว ตัวร้อน หนาวสั่น'
 
-    os.remove(repo.db_path)
+    os.remove(queue_repo.db_path)
 
-def test_sqlite_repo_should_update_existing_queue(patient, queue, repo):
-    repo.create_schema()
+def test_sqlite_queue_repo_should_update_existing_queue(patient, queue, queue_repo):
+    queue_repo.create_schema()
     sample_queue = queue
     assert sample_queue.status == QueueStatus.WAITING
 
-    repo.save(sample_queue)
+    queue_repo.save(sample_queue)
     sample_queue.start_consultation()
-    repo.save(sample_queue)
-    updated_queue = repo.get_by_queue_id(sample_queue.id)
+    queue_repo.save(sample_queue)
+    updated_queue = queue_repo.get_by_queue_id(sample_queue.id)
 
     assert updated_queue.status == QueueStatus.IN_PROGRESS
     assert updated_queue.version.number == 2
 
-    queue_all = repo.get_all()
+    queue_all = queue_repo.get_all()
     assert len(queue_all) == 1
-    os.remove(repo.db_path)
+    os.remove(queue_repo.db_path)
 
 
-def test_sqlite_repo_should_return_none_when_queue_not_found(repo):
-    repo.create_schema()
+def test_sqlite_queue_repo_should_return_none_when_queue_not_found(queue_repo):
+    queue_repo.create_schema()
     import uuid
     random_id = uuid.uuid4()
-    result_queue = repo.get_by_queue_id(random_id)
+    result_queue = queue_repo.get_by_queue_id(random_id)
     assert result_queue is None
-    os.remove(repo.db_path)
+    os.remove(queue_repo.db_path)
 
 
-def test_sqlite_repo_should_return_empty_list_when_db_is_empty(repo):
-    repo.create_schema()
+def test_sqlite_queue_repo_should_return_empty_list_when_db_is_empty(queue_repo):
+    queue_repo.create_schema()
 
-    result = repo.get_all()
+    result = queue_repo.get_all()
     assert isinstance(result, list)
     assert len(result) == 0
-    os.remove(repo.db_path)
+    os.remove(queue_repo.db_path)
 
-def test_sqlite_repo_should_save_extremely_long_diagnosis(repo, queue):
-    repo.create_schema()
+def test_sqlite_queue_repo_should_save_extremely_long_diagnosis(queue_repo, queue):
+    queue_repo.create_schema()
     queue.start_consultation()
     max_disease = 'ปวดหั' * 5
     max_treatment = 'ตัวร้อ' * 5
@@ -118,34 +69,34 @@ def test_sqlite_repo_should_save_extremely_long_diagnosis(repo, queue):
             frequency='วันละ 3 ครั้ง หลังอาหาร')]
         )
     )
-    repo.save(queue)
-    retrieved = repo.get_by_queue_id(queue.id)
+    queue_repo.save(queue)
+    retrieved = queue_repo.get_by_queue_id(queue.id)
 
     assert retrieved.id == queue.id
     assert retrieved.patient_id == queue.patient_id
     assert retrieved.status == QueueStatus.COMPLETED
     assert retrieved.diagnosis.disease == max_disease
     assert retrieved.diagnosis.treatment == max_treatment
-    os.remove(repo.db_path)
+    os.remove(queue_repo.db_path)
 
-def test_sqlite_queue_repo_should_raise_error_when_concurrency_conflict(repo, queue):
-    repo.create_schema()
-    repo.save(queue)
+def test_sqlite_queue_queue_repo_should_raise_error_when_concurrency_conflict(queue_repo, queue):
+    queue_repo.create_schema()
+    queue_repo.save(queue)
 
-    nurse_a_view = repo.get_by_queue_id(queue.id)
-    nurse_b_view = repo.get_by_queue_id(queue.id)
+    nurse_a_view = queue_repo.get_by_queue_id(queue.id)
+    nurse_b_view = queue_repo.get_by_queue_id(queue.id)
     assert nurse_a_view.version.number == nurse_b_view.version.number
     assert nurse_a_view.version.number == 1
 
     nurse_a_view.start_consultation()
-    repo.save(nurse_a_view)
+    queue_repo.save(nurse_a_view)
     assert nurse_a_view.version.number == 2
 
 
     nurse_b_view.cancel_visit()
 
     with raises(RuntimeError) as error:
-        repo.save(nurse_b_view)
-        os.remove(repo.db_path)
+        queue_repo.save(nurse_b_view)
+        os.remove(queue_repo.db_path)
 
         assert 'ข้อมูลใบคิวถูก update โดยผู้อื่นไปก่อนหน้าแล้ว' in str(error.value)

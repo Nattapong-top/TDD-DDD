@@ -1,6 +1,10 @@
-from Hospital_System.domain.entities import Patient
-from Hospital_System.domain.interface.repository import PatientRecord
-from Hospital_System.domain.value_object import NationalID
+from datetime import date
+from typing import List, Optional
+from uuid import UUID
+
+from Hospital_System.domain.entities import Patient, Queue
+from Hospital_System.domain.interface.repository import PatientRecord, QueueRecord
+from Hospital_System.domain.value_object import NationalID, QueueStatus
 
 
 class FakePatientRecord(PatientRecord):
@@ -26,3 +30,27 @@ class BrokenPatientRecord(PatientRecord):
 
     def update(self, patient: Patient) -> None:
         pass
+
+class FakeQueueRecord(QueueRecord):
+    def __init__(self):
+        self.queues: List[Queue] = []
+
+    def get_last_queue(self) -> Optional[Queue]:
+        return self.queues[-1] if self.queues else None
+
+    def save(self, queue: Queue) -> None:
+        self.queues.append(queue)
+
+    def find_active_queue_by_patient(self, patient_id: UUID, queue_date: date) -> Optional[Queue]:
+        for queue in self.queues:
+            if (queue.patient_id == patient_id and
+                    queue.queue_date == queue_date and
+                    queue.status in [QueueStatus.WAITING, QueueStatus.IN_PROGRESS]):
+                return queue
+        return None
+
+    def get_by_queue_id(self, queue_id: UUID) -> Optional[Queue]:
+        for queue in self.queues:
+            if queue.id == queue_id:
+                return queue
+        return None

@@ -314,16 +314,6 @@ def test_should_raise_error_when_Temperature_is_negative():
         Temperature(value=-1)
 
 
-# ส่วนของ VO VitalSigns เทสอาการผู้ป่วย
-@fixture
-def vital_signs() -> VitalSigns:
-    return VitalSigns(
-        blood_pressure=BloodPressure(systolic=120, diastolic=80),
-        weight=Weight(value=80),
-        height=Height(value=177),
-        temperature=Temperature(value=39.0),
-        symptom='น้ำหมูกไหล ปวดหัว ตัวร้อน หนาวสั่น'
-    )
 
 
 def test_should_create_VitalSigns_is_valid(vital_signs):
@@ -358,18 +348,7 @@ def test_should_raise_error_when_VitalSigns_symptom_too_long():
         )
 
 
-# ส่วนของ VO Diagnosis เทสคำวินิจฉัย
-@fixture
-def diagnosis() -> Diagnosis:
-    return Diagnosis(
-        disease='ไข้หวัดใหญ่',
-        treatment='พักผ่อนน ดิ่มน้ำมากๆ',
-        medicine_prescribed=[MedicineInfo(
-            name='Paracetamol',
-            strength='500mg',
-            frequency='วันละ 3 ครั้ง หลักอาหาร'
-        )]
-    )
+
 
 
 def test_create_Diagnosis_is_valid(diagnosis):

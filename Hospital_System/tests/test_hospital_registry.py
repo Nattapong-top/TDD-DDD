@@ -1,38 +1,13 @@
 # tests/test_hospital_registry.py
 import os
-from pytest import fixture
 
+from Hospital_System.domain.domain_service.patient_registrar import PatientRegistrar
+from Hospital_System.domain.domain_service.queue_service import QueueService
 # --- โซนงานบริหาร (Domain Service): นำเข้าตัวพยาบาลและเจ้าหน้าที่ ---
 from Hospital_System.domain.hospital_registry import HospitalRegistry
-from Hospital_System.domain.domain_service.queue_service import QueueService
-from Hospital_System.domain.domain_service.patient_registrar import PatientRegistrar
-
+from Hospital_System.infrastructure.sqlite_patient_repository import SqlPatientRepository
 # --- โซนงานช่าง (Infrastructure): นำเข้าตู้เก็บของจริง ---
 from Hospital_System.infrastructure.sqlite_queue_repository import SqlQueueRepository
-from Hospital_System.infrastructure.sqlite_patient_repository import SqlPatientRepository
-from Hospital_System.tests.test_queue_service import FakeQueueRecord
-
-
-# --- 1. Fixture สำหรับการจัดการไฟล์ DB ในการเทส ---
-@fixture(autouse=True)
-def clear_registry():
-    """ล้างค่าใน Registry ทุกครั้งก่อนและหลังเทสแต่ละเคส เพื่อไม่ให้ค่าค้าง"""
-    HospitalRegistry.reset()
-    yield
-    HospitalRegistry.reset()
-    # ลบไฟล์ DB ที่อาจจะเกิดขึ้นจากการเทส (ถ้ามี)
-    if os.path.exists('hospital_database.db'):
-        os.remove('hospital_database.db')
-
-
-@fixture
-def fake_repo():
-    return FakeQueueRecord()
-
-
-@fixture
-def queue_sql():
-    return SqlQueueRepository(db_path='test.db')
 
 
 def test_hospital_registry_should_return_queue_service_when_fake_repo(fake_repo):

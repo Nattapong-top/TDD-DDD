@@ -14,6 +14,7 @@ from Hospital_System.domain.value_object import (
 from Hospital_System.domain.domain_service.patient_registrar import PatientRegistrar
 from Hospital_System.infrastructure.sqlite_patient_repository import SqlPatientRepository
 from Hospital_System.infrastructure.sqlite_queue_repository import SqlQueueRepository
+from Hospital_System.tests.fake_repository.fake_repository import FakeQueueRecord
 
 
 @fixture(autouse=True)
@@ -155,8 +156,8 @@ def queue(patient):
 @fixture
 def diagnosis(patient):
     return Diagnosis(
-        disease='ไข้ทั่วไป',
-        treatment='พักผ่านให้เพียงพอและดื่มน้ำมากๆ',
+        disease='ไข้หวัดใหญ่',
+        treatment='พักผ่อนน ดิ่มน้ำมากๆ',
         medicine_prescribed=[MedicineInfo(
             name='Paracetamol',
             strength='500mg',
@@ -192,4 +193,14 @@ def new_patient(registrar, vital_signs):
         vital_signs=vital_signs
         )
 
+
+
+@fixture
+def fake_repo():
+    return FakeQueueRecord()
+
+
+@fixture
+def queue_sql():
+    return SqlQueueRepository(db_path='test.db')
 
