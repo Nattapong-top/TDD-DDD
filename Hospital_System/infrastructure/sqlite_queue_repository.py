@@ -90,9 +90,9 @@ class SqlQueueRepository(QueueRecord):
                 res = conn.execute(self._SELECT_BY_ID_QUERY, (str(queue.id),))
                 row = res.fetchone()
                 is_new = row is None
-
-                if not is_new:
-                    print(f"DEBUG: เจอของเก่า ID {row['q_id']} ทั้งที่กำลังจะเซฟ ID {queue.id}")
+                #
+                # if not is_new:
+                #     print(f"DEBUG: เจอของเก่า ID {row['q_id']} ทั้งที่กำลังจะเซฟ ID {queue.id}")
 
 
                 diag_data = self._prepare_diagnosis(queue)
