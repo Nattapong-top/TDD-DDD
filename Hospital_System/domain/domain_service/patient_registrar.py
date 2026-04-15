@@ -1,22 +1,24 @@
 #Hospital_System.domain.domain_service.patient_registrar
 
+from datetime import date
 from uuid import uuid4
 
+from Hospital_System.domain.custom_error import DuplicateNationalIDError
 from Hospital_System.domain.entities import Patient
 from Hospital_System.domain.value_object import (
-    NationalID, Name, PhoneNumber, DateOfBirth, Address, Rights)
-from Hospital_System.domain.custom_error import DuplicateNationalIDError
+    NationalID, Name, PhoneNumber, DateOfBirth, Address, Rights, VitalSigns)
 
 
 class PatientRegistrar:
-    def __init__(self,repo) -> None:
+    def __init__(self,repo, queue_service) -> None:
         self.repo = repo
+        self.queue_service = queue_service
 
     def register_new_patient(self,
                              national_id: NationalID, first_name: Name, last_name: Name,
                              phone_number: PhoneNumber, date_of_birth: DateOfBirth,
                              registered_address: Address, current_address: Address,
-                             rights: Rights) -> Patient:
+                             rights: Rights, vital_signs: VitalSigns) -> Patient:
 
         self._check_duplicate_national_id(national_id)
 
@@ -33,6 +35,11 @@ class PatientRegistrar:
         )
 
         self._save_patient(new_patient)
+        self.queue_service.issue_new_queue(
+            patient_id=new_patient.id,
+            today=date.today(), # หนี้เก่า ว่างจะเคลียร์
+            vital_signs=vital_signs
+        )
         return new_patient
 
     def update_patient_info(self, patient: Patient) -> None:

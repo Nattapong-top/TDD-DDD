@@ -51,7 +51,8 @@ class HospitalRegistry:
             repo = SqlPatientRepository(db_path=cls._DB_PATH)
 
             # ข) จากนั้น 'จ้างพยาบาล' (สร้าง Registrar) แล้วยื่นตู้เหล็กให้พยาบาลถือไว้ทำงาน
-            cls._patient_registrar = PatientRegistrar(repo=repo)
+            cls._patient_registrar = PatientRegistrar(repo=repo,
+                                                      queue_service=cls.queue_service())
 
         # ค) ส่งตัวพยาบาลที่พร้อมทำงาน (มีตู้เหล็กในมือแล้ว) กลับไปให้คนที่เรียกใช้
         return cls._patient_registrar

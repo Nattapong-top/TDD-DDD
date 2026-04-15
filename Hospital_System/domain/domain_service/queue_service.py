@@ -17,7 +17,8 @@ class QueueService:
         self._ensure_no_duplicate_queue(patient_id, today)
         last_date, last_num = self._check_queue_of_day()
         next_date, next_num = self._get_next_number(last_date, last_num, today)
-        new_queue = self._create_new_queue(next_date, next_num, patient_id, vital_signs)
+        new_queue = self._create_new_queue(patient_id, next_date, next_num, vital_signs)
+        self.repo.save(new_queue)
         return new_queue
 
     def start_consultation(self, queue_id: UUID) -> Queue:
@@ -42,13 +43,21 @@ class QueueService:
         self.repo.save(queue)
         return queue
 
-    def get_next_number(self, last_number: Number, last_date: date, time_now: datetime,
-                        today: date) -> Tuple[Number,date, datetime]:
+    def get_active_queue_by_patient(self, patient_id: UUID) -> Queue | None:
+        """เป็นปุ่มกดให้คนนอก (เช่น เทส หรือ Registrar) มาถามหาคิวที่ยัง Active อยู่"""
+        # 1. เตรียมข้อมูลวันที่วันนี้
+        today = date.today()
+        # 2. สั่งให้ช่างเหล็ก (Repo) มุดตู้ไปหามาให้
+        # (นี่คือจุดที่มันจะวิ่งไปเรียก SQL
+        return self.repo.find_active_queue_by_patient(patient_id=patient_id, queue_date=today)
+
+    def get_next_number(self, last_number: Number, last_date: date, time_now: date,
+                        today: date) -> Tuple[Number,date, date]:
         last_number, last_date = self._reset_date_and_number(last_number, last_date, today)
         now_number = Number(id=last_number.id + 1)
         return now_number, last_date, time_now
 
-    def _create_new_queue(self, next_date: date, next_num: Number, patient_id: UUID,
+    def _create_new_queue(self, patient_id: UUID, next_date: date, next_num: Number,
                           vital_signs: VitalSigns) -> Queue:
         new_queue = Queue(
             patient_id=patient_id,
@@ -57,7 +66,6 @@ class QueueService:
             vital_signs=vital_signs,
             status=QueueStatus.WAITING
         )
-        self.repo.save(new_queue)
         return new_queue
 
     def _get_next_number(self, last_date: date, last_num: Number, today: date) -> tuple[date, Number]:
