@@ -10,8 +10,8 @@ from Hospital_System.domain.value_object import (
 
 
 class PatientRegistrar:
-    def __init__(self,repo, queue_service) -> None:
-        self.repo = repo
+    def __init__(self,patient_repo, queue_service) -> None:
+        self.patient_repo = patient_repo
         self.queue_service = queue_service
 
     def register_new_patient(self,
@@ -46,14 +46,14 @@ class PatientRegistrar:
         return new_patient
 
     def update_patient_info(self, patient: Patient) -> None:
-        self.repo.update(patient=patient)
+        self.patient_repo.update(patient=patient)
 
 
     def _check_duplicate_national_id(self, national_id: NationalID):
-        existing_patient = self.repo.get_by_national_id(national_id=national_id)
+        existing_patient = self.patient_repo.get_by_national_id(national_id=national_id)
         if existing_patient:
             raise DuplicateNationalIDError(f'เลขบัตรประชาชนนี้มีในระบบแล้ว: {national_id.id}')
 
     def _save_patient(self, patient: Patient) -> Patient:
-        self.repo.save(patient=patient)
+        self.patient_repo.save(patient=patient)
         return patient

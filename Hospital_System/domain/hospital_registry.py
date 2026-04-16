@@ -1,79 +1,90 @@
 # domain/hospital_registry.py
-from typing import Optional
+from pathlib import Path
 
-# --- โซนงานบริหาร (Domain Service): นำเข้าตัวพยาบาลและเจ้าหน้าที่ ---
+# --- โซนงานบริหาร (Domain Service) ---
 from Hospital_System.domain.domain_service.patient_registrar import PatientRegistrar
 from Hospital_System.domain.domain_service.queue_service import QueueService
-from Hospital_System.domain.interface.repository import QueueRecord
 
-# --- โซนงานช่าง (Infrastructure): นำเข้าตู้เก็บของจริง ---
+# --- โซนงานช่าง (Infrastructure) ---
 from Hospital_System.infrastructure.sqlite_patient_repository import SqlPatientRepository
 from Hospital_System.infrastructure.sqlite_queue_repository import SqlQueueRepository
 
 
 class HospitalRegistry:
     """
-    HospitalRegistry: เปรียบเหมือน "ผู้อำนวยการโรงพยาบาล"
-    หน้าที่: ใครอยากได้อะไร ให้มาขอที่นี่ ผู้อำนวยการจะจัดของที่ถูกต้องไปให้เอง
+    HospitalRegistry: ศูนย์บัญชาการ (Registry Pattern)
+    ทำหน้าที่จัดการการสร้างและส่งมอบ Service/Repository ต่างๆ ให้กับระบบ
     """
 
-    # 1. กำหนดชื่อไฟล์ฐานข้อมูลไว้ที่เดียว (ถ้าจะเปลี่ยนชื่อไฟล์ แก้ตรงนี้ที่เดียวจบ)
-    _DB_PATH = r"hospital_database.db"
-
-    # 2. พื้นที่เก็บของส่วนตัวของผู้อำนวยการ (จำว่าเคยสร้างใครไว้บ้างหรือยัง)
-    _queue_service: Optional[QueueService] = None
-    _patient_registrar: Optional[PatientRegistrar] = None
+    _DB_PATH = None
+    _patient_registrar = None
+    _queue_service = None
 
     @classmethod
-    def init_database(cls):
-        """คำสั่งด่วนจาก ผอ.: ให้ช่างเหล็กไปสร้างตารางที่จำเป็นทั้งหมดให้เสร็จ!"""
-        # 1. เบิกตัวช่างเหล็ก (Repository)
-        from Hospital_System.infrastructure.sqlite_patient_repository import SqlPatientRepository
-        from Hospital_System.infrastructure.sqlite_queue_repository import SqlQueueRepository
-
-        SqlPatientRepository(db_path=cls._DB_PATH)
-        queue_repo = SqlQueueRepository(db_path=cls._DB_PATH)
-
-        # 2. สั่งให้ช่างเหล็กสร้างตาราง (ป๋าต้องไปเขียนฟังก์ชัน create_table ใน Repository ด้วยนะ)
-
-        queue_repo.create_schema()
-        print("🏗️  สร้างตารางคนไข้และคิวในฐานข้อมูลเรียบร้อย!")
+    def get_db_path(cls) -> str:
+        """ดึงตำแหน่งฐานข้อมูล (ถ้ายังไม่มีจะใช้ค่า Default)"""
+        if cls._DB_PATH is None:
+            # หาตำแหน่งโฟลเดอร์หลัก Hospital_System/ แล้วชี้ไปที่ database/hospital_database.db
+            base_dir = Path(__file__).resolve().parent.parent
+            cls._DB_PATH = str(base_dir / "database" / "hospital_database.db")
+        return cls._DB_PATH
 
     @classmethod
-    def configure_queue(cls, queue_repo: QueueRecord) -> None:
-        cls._queue_service = QueueService(repo=queue_repo)
-
-    @classmethod
-    def queue_service(cls) -> QueueService | None:
-        if cls._queue_service is None:
-            repo = SqlQueueRepository(db_path=cls._DB_PATH)
-            cls._queue_service = QueueService(repo=repo)
-        return cls._queue_service
+    def set_test_db(cls):
+        """🚩 สลับมาใช้ไฟล์สำหรับเทสโดยเฉพาะ (แทน :memory:)"""
+        cls.reset()
+        base_dir = Path(__file__).resolve().parent.parent
+        # ใช้ชื่อไฟล์แยกออกมา เพื่อไม่ให้ปนกับของจริง
+        cls._DB_PATH = str(base_dir / "database" / "test_database.db")
 
     @classmethod
     def reset(cls):
-        """ล้างสมองผู้อำนวยการ: ให้ลืมทุกคนที่เคยจ้างมา (จำเป็นมากตอนรันเทสหลายๆ รอบ)"""
+        """ล้าง Instance ที่ค้างอยู่ (จำเป็นมากเวลาเทสหลายๆ รอบ)"""
         cls._patient_registrar = None
         cls._queue_service = None
 
     @classmethod
-    def patient_repo(cls) -> SqlPatientRepository:
-        """เมธอดใหม่: สำหรับเบิกเฉพาะ 'ตู้เหล็กคนไข้'"""
-        return SqlPatientRepository(db_path=cls._DB_PATH)
+    def init_database(cls):
+        """เตรียมความพร้อม: สร้างโฟลเดอร์และตารางเริ่มต้น"""
+        path = cls.get_db_path()
+
+        # ถ้าไม่ใช่โหมด "test_database.db" ให้สร้างโฟลเดอร์รอไว้เลย
+        if path != "test_database.db":
+            db_dir = Path(path).parent
+            db_dir.mkdir(parents=True, exist_ok=True)
+
+        # สั่งให้ Repository ตรวจสอบและสร้างตาราง
+        SqlPatientRepository(db_path=path)
+        SqlQueueRepository(db_path=path)
 
     @classmethod
-    def patient_registrar(cls) -> PatientRegistrar | None:
-        """เมธอดเบิกตัว 'พยาบาลทะเบียน'"""
-
-        # เช็คในใจก่อนว่า: "เราเคยจ้างพยาบาลคนนี้มาหรือยัง?" (ถ้าเป็น None คือยังไม่มี)
+    def patient_registrar(cls) -> PatientRegistrar:
+        """เบิกตัวพยาบาลทะเบียน (Singleton)"""
         if cls._patient_registrar is None:
-            # ก) ถ้ายังไม่มี... ผู้อำนวยการจะไปเบิก 'ตู้เหล็กเก็บข้อมูลคนไข้' (SQLite Repo) มาก่อน
-            repo = SqlPatientRepository(db_path=cls._DB_PATH)
+            repo = SqlPatientRepository(db_path=cls.get_db_path())
 
-            # ข) จากนั้น 'จ้างพยาบาล' (สร้าง Registrar) แล้วยื่นตู้เหล็กให้พยาบาลถือไว้ทำงาน
-            cls._patient_registrar = PatientRegistrar(repo=repo,
-                                                      queue_service=cls.queue_service())
-
-        # ค) ส่งตัวพยาบาลที่พร้อมทำงาน (มีตู้เหล็กในมือแล้ว) กลับไปให้คนที่เรียกใช้
+            # 🚩 จุดสำคัญ: เปลี่ยนจาก cls._queue_service เป็น cls.queue_service()
+            # เพื่อให้มันวิ่งไปเช็คและสร้างแผนกคิวให้เสร็จก่อนส่งมอบครับ
+            cls._patient_registrar = PatientRegistrar(
+                patient_repo=repo,
+                queue_service=cls.queue_service()  # <--- ใส่วงเล็บเรียกใช้เมธอดเลยครับป๋า!
+            )
         return cls._patient_registrar
 
+    @classmethod
+    def queue_service(cls) -> QueueService:
+        """เบิกตัวแผนกคิว (Singleton)"""
+        if cls._queue_service is None:
+            repo = SqlQueueRepository(db_path=cls.get_db_path())
+            cls._queue_service = QueueService(repo=repo)
+        return cls._queue_service
+
+    @classmethod
+    def patient_repo(cls) -> SqlPatientRepository:
+        """เบิกตู้เหล็กเก็บคนไข้โดยตรง"""
+        return SqlPatientRepository(db_path=cls.get_db_path())
+
+    @classmethod
+    def configure_queue(cls, queue_repo):
+        """เมธอดสำหรับขาโมดิฟาย: ยัด Repo เองกับมือ"""
+        cls._queue_service = QueueService(repo=queue_repo)

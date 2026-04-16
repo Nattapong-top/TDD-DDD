@@ -71,7 +71,7 @@ def test_patient_registrar_should_raise_error_when_national_id_invalid(registrar
 
 def test_patient_registrar_should_handle_repository_failure(registered_address, current_address, queue_service, vital_signs):
     broken_repo = BrokenPatientRecord()
-    unlucky_registrar = PatientRegistrar(repo=broken_repo, queue_service=queue_service)
+    unlucky_registrar = PatientRegistrar(patient_repo=broken_repo, queue_service=queue_service)
 
     with raises(RuntimeError) as excinfo:
         unlucky_registrar.register_new_patient(

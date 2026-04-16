@@ -46,7 +46,7 @@ def test_hospital_registry_should_get_patient_registrar_with_auto_wiring():
     # ตรวจความถูกต้อง
     assert isinstance(registrar, PatientRegistrar)
     # ตรวจว่าพยาบาลถือตู้ SQLite จริงหรือเปล่า
-    assert isinstance(registrar.repo, SqlPatientRepository)
+    assert isinstance(registrar.patient_repo, SqlPatientRepository)
 
 
 def test_hospital_registry_should_return_same_when_call_patient_registrar_instance():

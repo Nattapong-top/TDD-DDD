@@ -1,11 +1,7 @@
 # Hospital_System/tests/test_api.py
-from fastapi.testclient import TestClient
-from Hospital_System.api.main import app
 
-# สร้างลูกค้าจำลองสำหรับยิง API
-client = TestClient(app)
 
-def test_api_register_new_patient_should_return_success():
+def test_api_register_new_patient_should_return_success(client):
     # 1. จำลองข้อมูล JSON ที่หน้าเว็บจะส่งมาให้ (เหมือนกรอกฟอร์ม)
     payload = {
         "national_id": "1999999999999",

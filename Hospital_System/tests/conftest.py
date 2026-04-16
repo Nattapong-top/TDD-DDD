@@ -1,53 +1,79 @@
 import os
 import uuid
 from datetime import date, datetime
+from fastapi.testclient import TestClient
 from pytest import fixture
 
-from Hospital_System.domain.domain_service.queue_service import QueueService
+from Hospital_System.api.main import app
 from Hospital_System.domain.entities import Patient, Queue
+from Hospital_System.domain.hospital_registry import HospitalRegistry
 from Hospital_System.domain.value_object import (
     Address, Province, MedicineInfo, Diagnosis, Rights, PatientRights, \
     PhoneNumber, Name, DateOfBirth, NationalID, Temperature, Weight, Height,
     BloodPressure, VitalSigns, QueueStatus, \
     Number, Version)
-
-from Hospital_System.domain.domain_service.patient_registrar import PatientRegistrar
-from Hospital_System.infrastructure.sqlite_patient_repository import SqlPatientRepository
-from Hospital_System.infrastructure.sqlite_queue_repository import SqlQueueRepository
 from Hospital_System.tests.fake_repository.fake_repository import FakeQueueRecord
 
 
+# 🚩 1. ตัวคุมระบบ: เคลียร์ทุกอย่างก่อนเริ่มเทสแต่ละครั้ง
 @fixture(autouse=True)
-def clear_db():
-    yield
-    # 🚩 ลบไฟล์ DB ของคิวด้วยครับป๋า
-    db_files = ['hospital_database.db', 'test_hospital.db']
-    for f in db_files:
-        if os.path.exists(f):
-            try: os.remove(f)
-            except: pass
+def setup_database():
+    # 1. ตั้งค่าให้ใช้ DB สำหรับเทส
+    HospitalRegistry.set_test_db()
+    HospitalRegistry.init_database()
+
+    yield  # รันเทสตรงนี้...
+
+    # 2. หลังเทสจบ ปิดการเชื่อมต่อ และลบไฟล์ทิ้ง (ถ้ามี)
+    HospitalRegistry.reset()
+    db_path = HospitalRegistry.get_db_path()
+
+    # ถ้าไม่ใช่ของจริง และไฟล์มีอยู่จริง ให้ลบทิ้ง
+    if "test_database.db" in db_path and os.path.exists(db_path):
+        try:
+            os.remove(db_path)
+        except PermissionError:
+            # ถ้า Windows ล็อกไฟล์ไว้ ไม่ต้องตกใจครับ ปล่อยผ่านไปก่อน
+            pass
+
+# 🚩 2. ตัวเบิกอุปกรณ์: ไม่ต้องสร้างเอง ให้ไปเบิกจากผู้อำนวยการ (Registry)
+@fixture
+def registrar():
+    return HospitalRegistry.patient_registrar()
+
+@fixture
+def queue_service():
+    return HospitalRegistry.queue_service()
 
 
 @fixture
-def patient_repo() -> SqlPatientRepository:
-    return SqlPatientRepository('hospital_database.db')
+def client():
+    """🚩 กล่องเครื่องมือสำหรับยิง API (เหมือน Postman จำลอง)"""
+    # ใช้งาน TestClient โดยส่งแอป FastAPI ของป๋าเข้าไป
+    with TestClient(app) as c:
+        yield c
 
 @fixture
-def queue_repo(tmp_path):
-    """สร้างตู้เก็บคิว (SQL) ชั่วคราวสำหรับการเทส"""
-    db_path = str(tmp_path / "test_hospital.db")
-    repo = SqlQueueRepository(db_path)
-    repo.create_schema() # 🚩 สร้างตารางรอไว้เลย
-    return repo
+def fake_repo():
+    return FakeQueueRecord()
 
 
 @fixture
-def queue_service(queue_repo):
-    return QueueService(repo=queue_repo)
+def queue_sql():
+    return HospitalRegistry.queue_service().repo
 
+# 🚩 1. เพิ่ม Fixture สำหรับตู้เหล็กคิว (ที่เทสเก่าถามหา)
 @fixture
-def registrar(patient_repo, queue_service) -> PatientRegistrar:
-    return PatientRegistrar(repo=patient_repo, queue_service=queue_service)
+def queue_repo():
+    """เบิกตู้เหล็กเก็บคิวจากผู้อำนวยการ"""
+    # ดึงมาจาก Service ที่ Registry เตรียมไว้ให้แล้ว
+    return HospitalRegistry.queue_service().repo
+
+# 🚩 2. (แถม) เผื่อเทสไหนถามหาตู้เหล็กคนไข้
+@fixture
+def patient_repo():
+    """เบิกตู้เหล็กเก็บคนไข้จากผู้อำนวยการ"""
+    return HospitalRegistry.patient_repo()
 
 
 @fixture
@@ -194,13 +220,4 @@ def new_patient(registrar, vital_signs):
         )
 
 
-
-@fixture
-def fake_repo():
-    return FakeQueueRecord()
-
-
-@fixture
-def queue_sql():
-    return SqlQueueRepository(db_path='test.db')
 
