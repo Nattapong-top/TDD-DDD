@@ -60,14 +60,14 @@ def fake_repo():
 
 @fixture
 def queue_sql():
-    return HospitalRegistry.queue_service().repo
+    return HospitalRegistry.queue_service().queue_repo
 
 # 🚩 1. เพิ่ม Fixture สำหรับตู้เหล็กคิว (ที่เทสเก่าถามหา)
 @fixture
 def queue_repo():
     """เบิกตู้เหล็กเก็บคิวจากผู้อำนวยการ"""
     # ดึงมาจาก Service ที่ Registry เตรียมไว้ให้แล้ว
-    return HospitalRegistry.queue_service().repo
+    return HospitalRegistry.queue_service().queue_repo
 
 # 🚩 2. (แถม) เผื่อเทสไหนถามหาตู้เหล็กคนไข้
 @fixture
@@ -123,7 +123,7 @@ def vital_signs():
 
 
 @fixture
-def patient():
+def patient(current_address, registered_address):
     return Patient(
         id=uuid.uuid4(),
         national_id=NationalID(id='1234567890123'),
@@ -131,22 +131,8 @@ def patient():
         last_name=Name(value='คนสุขภาพดี'),
         phone_number=PhoneNumber(value='0123456789'),
         date_of_birth=DateOfBirth(year=1990, month=12, day=31),
-        registered_address=Address(
-            house_number='10',
-            street='วิวิธสุรการ',
-            sub_district='มุกดาหาร',
-            district='เมือง',
-            province=Province.MUKDAHAN,
-            postal_code='49000'
-        ),
-        current_address=Address(  # ตั้งอยู่ที่ 173 ถนนดินสอ แขวงเสาชิงช้า เขตพระนคร กรุงเทพมหานคร 10200
-            house_number='173',
-            street='ดินสอ',
-            sub_district='เสาชิงช้า',
-            district='พระนคร',
-            province=Province.BANGKOK,
-            postal_code='10200'
-        ),
+        registered_address=registered_address,
+        current_address=current_address,
         rights=Rights(rights_type=PatientRights.SOCIAL_SECURITY),
         version=Version(number=1)
     )
@@ -162,18 +148,12 @@ def new_queue(queue_service, patient, vital_signs, today_date):
 
 
 @fixture
-def queue(patient):
+def queue(patient, today_date, vital_signs):
     return Queue(
         patient_id=patient.id,
         queue_number=Number(id=1),
-        queue_date=date.today(),
-        vital_signs=VitalSigns(
-            blood_pressure=BloodPressure(systolic=120, diastolic=80),
-            weight=Weight(value=80),
-            height=Height(value=177),
-            temperature=Temperature(value=39.0),
-            symptom='น้ำหมูกไหล ปวดหัว ตัวร้อน หนาวสั่น'
-        ),
+        queue_date=today_date,
+        vital_signs=vital_signs,
         status=QueueStatus.WAITING,
         version=Version(number=1)
     )
@@ -192,32 +172,17 @@ def diagnosis(patient):
     )
 
 @fixture
-def new_patient(registrar, vital_signs):
+def new_patient(registrar, vital_signs, registered_address, current_address):
     return registrar.register_new_patient(
         national_id=NationalID(id='1234567890123'),
         first_name=Name(value='นนทพัฒน์'),
         last_name=Name(value='คนสุขภาพดี'),
         phone_number=PhoneNumber(value='0123456789'),
         date_of_birth=DateOfBirth(year=1990, month=12, day=31),
-        registered_address=Address(
-            house_number='10',
-            street='วิวิธสุรการ',
-            sub_district='มุกดาหาร',
-            district='เมือง',
-            province=Province.MUKDAHAN,
-            postal_code='49000'
-        ),
-        current_address=Address(  # ตั้งอยู่ที่ 173 ถนนดินสอ แขวงเสาชิงช้า เขตพระนคร กรุงเทพมหานคร 10200
-            house_number='173',
-            street='ดินสอ',
-            sub_district='เสาชิงช้า',
-            district='พระนคร',
-            province=Province.BANGKOK,
-            postal_code='10200'
-        ),
-        rights=Rights(rights_type=PatientRights.SOCIAL_SECURITY),
-        vital_signs=vital_signs
-        )
+        registered_address=registered_address,
+        current_address=current_address,
+        rights=Rights(rights_type=PatientRights.SOCIAL_SECURITY)
+    )
 
 
 

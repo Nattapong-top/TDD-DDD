@@ -35,8 +35,7 @@ def test_registrar_patient_should_raise_error_when_duplicate_national_id(registr
         date_of_birth=DateOfBirth(year=1990, month=12, day=31),
         registered_address=registered_address,
         current_address=current_address,
-        rights=Rights(rights_type=PatientRights.SOCIAL_SECURITY),
-        vital_signs=vital_signs
+        rights=Rights(rights_type=PatientRights.SOCIAL_SECURITY)
     )
     with raises(DuplicateNationalIDError) as error:
         registrar.register_new_patient(
@@ -47,9 +46,7 @@ def test_registrar_patient_should_raise_error_when_duplicate_national_id(registr
             date_of_birth=DateOfBirth(year=1990, month=12, day=31),
             registered_address=registered_address,
             current_address=current_address,
-            rights=Rights(rights_type=PatientRights.SOCIAL_SECURITY),
-            vital_signs = vital_signs
-        )
+            rights=Rights(rights_type=PatientRights.SOCIAL_SECURITY)        )
     assert 'เลขบัตรประชาชนนี้มีในระบบแล้ว' in str(error.value)
 
 
@@ -63,15 +60,14 @@ def test_patient_registrar_should_raise_error_when_national_id_invalid(registrar
             date_of_birth=DateOfBirth(year=1990, month=12, day=31),
             registered_address=registered_address,
             current_address=current_address,
-            rights=Rights(rights_type=PatientRights.SOCIAL_SECURITY),
-            vital_signs=vital_signs
+            rights=Rights(rights_type=PatientRights.SOCIAL_SECURITY)
         )
     assert '132456' in str(error.value)
 
 
 def test_patient_registrar_should_handle_repository_failure(registered_address, current_address, queue_service, vital_signs):
     broken_repo = BrokenPatientRecord()
-    unlucky_registrar = PatientRegistrar(patient_repo=broken_repo, queue_service=queue_service)
+    unlucky_registrar = PatientRegistrar(patient_repo=broken_repo)
 
     with raises(RuntimeError) as excinfo:
         unlucky_registrar.register_new_patient(
@@ -82,9 +78,7 @@ def test_patient_registrar_should_handle_repository_failure(registered_address, 
             date_of_birth=DateOfBirth(year=1980, month=1, day=1),
             registered_address=registered_address,
             current_address=current_address,
-            rights=Rights(rights_type=PatientRights.GOLD_CARD),
-            vital_signs=vital_signs
-        )
+            rights=Rights(rights_type=PatientRights.GOLD_CARD)        )
 
     assert "Database พัง save ไม่ได้" in str(excinfo.value)
 
@@ -98,9 +92,7 @@ def test_patient_registrar_should_update_patient_info_through_repository(registe
         date_of_birth=DateOfBirth(year=1990, month=12, day=31),
         registered_address=registered_address,
         current_address=current_address,
-        rights=Rights(rights_type=PatientRights.SOCIAL_SECURITY),
-        vital_signs=vital_signs
-    )
+        rights=Rights(rights_type=PatientRights.SOCIAL_SECURITY)    )
     new_phone = PhoneNumber(value='099-999-9999')
     new_patient.update_phone_number(new_phone)
 
@@ -121,8 +113,7 @@ def test_patient_registrar_should_increment_version_when_update_patient_info(
         date_of_birth=DateOfBirth(year=1990, month=12, day=31),
         registered_address=registered_address,
         current_address=current_address,
-        rights=Rights(rights_type=PatientRights.SOCIAL_SECURITY),
-        vital_signs=vital_signs
+        rights=Rights(rights_type=PatientRights.SOCIAL_SECURITY)
     )
     new_phone = PhoneNumber(value='099-999-9999')
     new_patient.update_phone_number(new_phone)

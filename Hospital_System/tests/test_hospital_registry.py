@@ -16,7 +16,7 @@ def test_hospital_registry_should_return_queue_service_when_fake_repo(fake_repo)
 
     assert isinstance(service, QueueService)
     assert isinstance(HospitalRegistry.queue_service(), QueueService)
-    assert service.repo == fake_repo # เช็คว่าได้ของปลอมตามที่สั่ง
+    assert service.queue_repo == fake_repo # เช็คว่าได้ของปลอมตามที่สั่ง
 
 
 def test_hospital_registry_should_auto_wire_real_sqlite_repo(queue_sql):
@@ -25,16 +25,15 @@ def test_hospital_registry_should_auto_wire_real_sqlite_repo(queue_sql):
     service = HospitalRegistry.queue_service()
 
     assert isinstance(service, QueueService)
-    assert isinstance(service.repo, SqlQueueRepository)
-    assert service.repo == queue_sql
-    if os.path.exists('test.db'):
-        os.remove('test.db')
+    assert isinstance(service.queue_repo, SqlQueueRepository)
+    assert service.queue_repo == queue_sql
+
 
 
 def test_hospital_registry_should_real_sqlite_repository():
     service = HospitalRegistry.queue_service()
     assert isinstance(service, QueueService)
-    assert isinstance(service.repo, SqlQueueRepository)
+    assert isinstance(service.queue_repo, SqlQueueRepository)
 
     assert isinstance(HospitalRegistry.queue_service(), QueueService)
 

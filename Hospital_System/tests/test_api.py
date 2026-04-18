@@ -13,9 +13,6 @@ def test_api_register_new_patient_should_return_success(client):
         "sub_district": "คลองเตย", "district": "คลองเตย",
         "province": "กรุงเทพมหานคร", "postal_code": "10110",
         "rights_type": "ประกันสังคม",
-        "systolic": 120, "diastolic": 80,
-        "weight": 70.0, "height": 175.0, "temperature": 36.5,
-        "symptom": "ปวดหัว ตัวร้อน"
     }
 
     # 2. ยิง API แบบ POST ไปที่ประตูรับลงทะเบียน
@@ -24,6 +21,5 @@ def test_api_register_new_patient_should_return_success(client):
     # 3. ตรวจข้อสอบ
     assert response.status_code == 200  # ต้องตอบกลับว่าสำเร็จ (200 OK)
     data = response.json()
-    assert 'queue_id' in data # ต้องมีรหัสคิวส่งกลับมา
-    assert 'queue_number' in data
-    assert data['status'] == 'รอ' # สถานะคิวต้องเป็น "รอ"
+    assert data['national_id'] == payload['national_id']
+    assert data['first_name'] == payload['first_name']

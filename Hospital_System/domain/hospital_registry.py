@@ -63,12 +63,7 @@ class HospitalRegistry:
         if cls._patient_registrar is None:
             repo = SqlPatientRepository(db_path=cls.get_db_path())
 
-            # 🚩 จุดสำคัญ: เปลี่ยนจาก cls._queue_service เป็น cls.queue_service()
-            # เพื่อให้มันวิ่งไปเช็คและสร้างแผนกคิวให้เสร็จก่อนส่งมอบครับ
-            cls._patient_registrar = PatientRegistrar(
-                patient_repo=repo,
-                queue_service=cls.queue_service()  # <--- ใส่วงเล็บเรียกใช้เมธอดเลยครับป๋า!
-            )
+            cls._patient_registrar = PatientRegistrar(patient_repo=repo)
         return cls._patient_registrar
 
     @classmethod
@@ -76,7 +71,7 @@ class HospitalRegistry:
         """เบิกตัวแผนกคิว (Singleton)"""
         if cls._queue_service is None:
             repo = SqlQueueRepository(db_path=cls.get_db_path())
-            cls._queue_service = QueueService(repo=repo)
+            cls._queue_service = QueueService(queue_repo=repo)
         return cls._queue_service
 
     @classmethod
@@ -87,4 +82,4 @@ class HospitalRegistry:
     @classmethod
     def configure_queue(cls, queue_repo):
         """เมธอดสำหรับขาโมดิฟาย: ยัด Repo เองกับมือ"""
-        cls._queue_service = QueueService(repo=queue_repo)
+        cls._queue_service = QueueService(queue_repo=queue_repo)

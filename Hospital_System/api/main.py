@@ -48,12 +48,6 @@ class RegisterRequest(BaseModel):
     province: Province
     postal_code: str
     rights_type: PatientRights
-    systolic: int
-    diastolic: int
-    weight: float
-    height: float
-    temperature: float
-    symptom: str
 
 
 # --- จุดบริการ (Endpoints) ---
@@ -81,7 +75,7 @@ def health_check():
 
 
 @app.get("/api/queues/{queue_id}")
-def get_queue_status(queue_id: UUID):
+def get_queue_status(queue_id: UUID) -> dict:
     qs = HospitalRegistry.queue_service()
     queue = qs.repo.get_by_queue_id(queue_id)
     if not queue:
@@ -95,7 +89,7 @@ def get_queue_status(queue_id: UUID):
 
 
 @app.post("/api/patients/register")
-def register_patient(request: RegisterRequest):
+def register_patient(request: RegisterRequest) -> dict:
     # 🚩 จุดที่ 2: ใช้ Try-Except เพื่อดักจับ Error จาก Domain (เช่น ID ซ้ำ)
     try:
         registrar = HospitalRegistry.patient_registrar()
@@ -104,11 +98,6 @@ def register_patient(request: RegisterRequest):
             house_number=request.house_number, street=request.street,
             sub_district=request.sub_district, district=request.district,
             province=request.province, postal_code=request.postal_code
-        )
-        vital_signs = VitalSigns(
-            blood_pressure=BloodPressure(systolic=request.systolic, diastolic=request.diastolic),
-            weight=Weight(value=request.weight), height=Height(value=request.height),
-            temperature=Temperature(value=request.temperature), symptom=request.symptom
         )
 
         new_patient = registrar.register_new_patient(
@@ -119,17 +108,16 @@ def register_patient(request: RegisterRequest):
             date_of_birth=DateOfBirth(year=request.dob_year, month=request.dob_month, day=request.dob_day),
             registered_address=address,
             current_address=address,
-            rights=Rights(rights_type=request.rights_type),
-            vital_signs=vital_signs
+            rights=Rights(rights_type=request.rights_type)
         )
 
-        qs = HospitalRegistry.queue_service()
-        active_queue = qs.get_active_queue_by_patient(new_patient.id)
+
+        active_queue = HospitalRegistry.patient_repo().get_by_national_id(new_patient.national_id)
 
         return {
             "message": "ลงทะเบียนสำเร็จ!",
-            "queue_id": str(active_queue.id),
-            "queue_number": active_queue.queue_number.id
+            "national_id": str(active_queue.national_id.id),
+            'first_name': str(new_patient.first_name.value)
         }
 
     except ValueError as e:
