@@ -1,10 +1,13 @@
-import sys
 import os
-from datetime import date
+import sys
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, HTTPException
 from uuid import UUID
+
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
+
+from Hospital_System.domain.domain_service.patient_registrar import PatientRegistrar
+from Hospital_System.domain.entities import Patient
 
 # ฝัง GPS ให้ Python
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -12,7 +15,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from Hospital_System.domain.hospital_registry import HospitalRegistry
 from Hospital_System.domain.value_object import (
     NationalID, Name, PhoneNumber, DateOfBirth, Address, Province,
-    Rights, PatientRights, VitalSigns, BloodPressure, Weight, Height, Temperature
+    Rights, PatientRights
 )
 
 
@@ -31,6 +34,15 @@ app = FastAPI(
     lifespan=lifespan
 )
 
+# --- จุดบริการ (Endpoints) ---
+class AddressSchema(BaseModel):
+    house_number: str
+    street: str
+    sub_district: str
+    district: str
+    province: Province
+    postal_code: str
+
 
 # --- ข้อมูลรับเข้า (Request Schema) ---
 class RegisterRequest(BaseModel):
@@ -41,16 +53,23 @@ class RegisterRequest(BaseModel):
     dob_year: int
     dob_month: int
     dob_day: int
-    house_number: str
-    street: str
-    sub_district: str
-    district: str
-    province: Province
-    postal_code: str
+    registered_address: AddressSchema
+    current_address: AddressSchema
     rights_type: PatientRights
 
 
-# --- จุดบริการ (Endpoints) ---
+# 1. สร้างฟังก์ชันแปลงโฉม (Mapper)
+# ให้มันรับ AddressSchema (ก้อนเล็ก) แล้วคืนค่าเป็น Address VO
+def to_address_vo(addr_schema: AddressSchema) -> Address:
+    return Address(
+        house_number=addr_schema.house_number,
+        street=addr_schema.street,
+        sub_district=addr_schema.sub_district,
+        district=addr_schema.district,
+        province=addr_schema.province,
+        postal_code=addr_schema.postal_code
+    )
+
 
 @app.get("/")
 def health_check():
@@ -94,22 +113,15 @@ def register_patient(request: RegisterRequest) -> dict:
     try:
         registrar = HospitalRegistry.patient_registrar()
 
-        address = Address(
-            house_number=request.house_number, street=request.street,
-            sub_district=request.sub_district, district=request.district,
-            province=request.province, postal_code=request.postal_code
-        )
+        # 🚩 แกะที่อยู่ที่ 1: ตามทะเบียนบ้าน
+        # ** request.registered_address.model_dump()
+        registered_addr = to_address_vo(request.registered_address)
 
-        registered_patient = registrar.register_new_patient(
-            national_id=NationalID(id=request.national_id),
-            first_name=Name(value=request.first_name),
-            last_name=Name(value=request.last_name),
-            phone_number=PhoneNumber(value=request.phone_number),
-            date_of_birth=DateOfBirth(year=request.dob_year, month=request.dob_month, day=request.dob_day),
-            registered_address=address,
-            current_address=address,
-            rights=Rights(rights_type=request.rights_type)
-        )
+        # 🚩 แกะที่อยู่ที่ 2: ที่อยู่ปัจจุบัน
+        current_addr = to_address_vo(request.current_address)
+
+        registered_patient = _registrar_patient_detail(current_addr, registered_addr,
+                                                registrar, request)
 
         return {
             "message": "ลงทะเบียนสำเร็จ!",
@@ -123,6 +135,21 @@ def register_patient(request: RegisterRequest) -> dict:
     except Exception as e:
         # กันเหนียวเผื่อมี Error อื่นๆ
         raise HTTPException(status_code=500, detail="เกิดข้อผิดพลาดภายในระบบ")
+
+
+def _registrar_patient_detail(current_addr: Address, registered_addr: Address, registrar: PatientRegistrar,
+                       request: RegisterRequest) -> Patient:
+    registered_patient = registrar.register_new_patient(
+        national_id=NationalID(id=request.national_id),
+        first_name=Name(value=request.first_name),
+        last_name=Name(value=request.last_name),
+        phone_number=PhoneNumber(value=request.phone_number),
+        date_of_birth=DateOfBirth(year=request.dob_year, month=request.dob_month, day=request.dob_day),
+        registered_address=registered_addr,
+        current_address=current_addr,
+        rights=Rights(rights_type=request.rights_type)
+    )
+    return registered_patient
 
 
 if __name__ == "__main__":

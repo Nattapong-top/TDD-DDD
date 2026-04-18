@@ -1,8 +1,6 @@
 #Hospital_System.domain.domain_service.patient_registrar
-from typing import Any
 from uuid import uuid4
 
-from Hospital_System.domain.custom_error import DuplicateNationalIDError
 from Hospital_System.domain.entities import Patient
 from Hospital_System.domain.value_object import (
     NationalID, Name, PhoneNumber, DateOfBirth, Address, Rights)

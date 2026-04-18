@@ -186,3 +186,23 @@ def new_patient(registrar, vital_signs, registered_address, current_address):
 
 
 
+@fixture
+def valid_patient_payload():
+    return {
+        "national_id": "1234567890123",
+        "first_name": "นนทพัฒน์",
+        "last_name": "ใจดี",
+        "phone_number": "0812345678",
+        "dob_year": 1990, "dob_month": 5, "dob_day": 20,
+        "registered_address": {
+            "house_number": "1/1", "street": "ราชดำเนิน",
+            "sub_district": "บวรนิเวศ", "district": "พระนคร",
+            "province": "กรุงเทพมหานคร", "postal_code": "10200"
+        },
+        "current_address": {
+            "house_number": "99/9", "street": "สุขุมวิท",
+            "sub_district": "คลองเตย", "district": "คลองเตย",
+            "province": "กรุงเทพมหานคร", "postal_code": "10110"
+        },
+        "rights_type": "ประกันสังคม"
+    }
