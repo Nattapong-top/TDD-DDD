@@ -1,5 +1,5 @@
 #Hospital_System.domain.domain_service.patient_registrar
-
+from typing import Any
 from uuid import uuid4
 
 from Hospital_System.domain.custom_error import DuplicateNationalIDError
@@ -18,9 +18,9 @@ class PatientRegistrar:
                              registered_address: Address, current_address: Address,
                              rights: Rights) -> Patient:
 
-
-
-        self._check_duplicate_national_id(national_id)
+        existing_patient = self.patient_repo.get_by_national_id(national_id=national_id)
+        if existing_patient:
+            return existing_patient
 
         new_patient = Patient(
             id=uuid4(),
@@ -40,12 +40,16 @@ class PatientRegistrar:
     def update_patient_info(self, patient: Patient) -> None:
         self.patient_repo.update(patient=patient)
 
-
-    def _check_duplicate_national_id(self, national_id: NationalID):
-        existing_patient = self.patient_repo.get_by_national_id(national_id=national_id)
-        if existing_patient:
-            raise DuplicateNationalIDError(f'เลขบัตรประชาชนนี้มีในระบบแล้ว: {national_id.id}')
+    # ยกเลิก เพราะเปลียน business logic จาก raise เป็น return patient
+    # def _check_duplicate_national_id(self, national_id: NationalID) -> None:
+    #     existing_patient = self.patient_repo.get_by_national_id(national_id=national_id)
+    #     if existing_patient:
+    #         raise DuplicateNationalIDError(f'เลขบัตรประชาชนนี้มีในระบบแล้ว: {national_id.id}')
 
     def _save_patient(self, patient: Patient) -> Patient:
         self.patient_repo.save(patient=patient)
         return patient
+
+    # ใน patient_registrar.py
+    def get_patient(self, national_id: NationalID) -> Patient:
+        return self.patient_repo.get_by_national_id(national_id=national_id)

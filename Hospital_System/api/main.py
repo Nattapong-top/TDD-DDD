@@ -111,8 +111,7 @@ def register_patient(request: RegisterRequest) -> dict:
             rights=Rights(rights_type=request.rights_type)
         )
 
-
-        active_queue = HospitalRegistry.patient_repo().get_by_national_id(new_patient.national_id)
+        active_queue = registrar.get_patient(new_patient.national_id)
 
         return {
             "message": "ลงทะเบียนสำเร็จ!",

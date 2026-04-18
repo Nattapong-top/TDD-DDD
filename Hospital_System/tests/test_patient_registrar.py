@@ -7,12 +7,22 @@ from Hospital_System.domain.custom_error import DuplicateNationalIDError
 from Hospital_System.domain.domain_service.patient_registrar import PatientRegistrar
 from Hospital_System.domain.value_object import (
     NationalID, Name, PhoneNumber, DateOfBirth, Rights, PatientRights)
-from Hospital_System.tests.conftest import vital_signs
+from Hospital_System.tests.conftest import vital_signs, new_patient
 from Hospital_System.tests.fake_repository.fake_repository import (
     BrokenPatientRecord)
 
 
-def test_registrar_patient_when_patient_valid(new_patient, patient_repo):
+def test_registrar_patient_when_patient_valid(registrar, patient_repo, registered_address, current_address):
+    new_patient = registrar.register_new_patient(
+        national_id=NationalID(id='1234567890123'),
+        first_name=Name(value='นนทพัฒน์'),
+        last_name=Name(value='คนสุขภาพดี'),
+        phone_number=PhoneNumber(value='0123456789'),
+        date_of_birth=DateOfBirth(year=1990, month=12, day=31),
+        registered_address=registered_address,
+        current_address=current_address,
+        rights=Rights(rights_type=PatientRights.SOCIAL_SECURITY)
+    )
     retrieve = new_patient
 
     assert retrieve.national_id == NationalID(id='1234567890123')
@@ -23,11 +33,37 @@ def test_registrar_patient_when_patient_valid(new_patient, patient_repo):
     assert saved_patient.national_id == NationalID(id='1234567890123')
     assert saved_patient.version.number == 1
 
+# ยกเลิกเทส เพราะเปลียน business logic จาก raise เป็น return patient
+# def test_registrar_patient_should_raise_error_when_duplicate_national_id(registrar, registered_address,
+#                                                                          current_address,vital_signs):
+#     common_id = NationalID(id='1234567890123')
+#     registrar.register_new_patient(
+#         national_id=common_id,
+#         first_name=Name(value='นนทพัฒน์'),
+#         last_name=Name(value='คนสุขภาพดี'),
+#         phone_number=PhoneNumber(value='0123456789'),
+#         date_of_birth=DateOfBirth(year=1990, month=12, day=31),
+#         registered_address=registered_address,
+#         current_address=current_address,
+#         rights=Rights(rights_type=PatientRights.SOCIAL_SECURITY)
+#     )
+#     with raises(DuplicateNationalIDError) as error:
+#         registrar.register_new_patient(
+#             national_id=common_id,
+#             first_name=Name(value='นนทพัฒน์'),
+#             last_name=Name(value='คนสุขภาพดี'),
+#             phone_number=PhoneNumber(value='0123456789'),
+#             date_of_birth=DateOfBirth(year=1990, month=12, day=31),
+#             registered_address=registered_address,
+#             current_address=current_address,
+#             rights=Rights(rights_type=PatientRights.SOCIAL_SECURITY)        )
+#     assert 'เลขบัตรประชาชนนี้มีในระบบแล้ว' in str(error.value)
 
-def test_registrar_patient_should_raise_error_when_duplicate_national_id(registrar, registered_address,
+
+def test_registrar_patient_should_handle_when_duplicate_national_id(registrar, registered_address,
                                                                          current_address,vital_signs):
     common_id = NationalID(id='1234567890123')
-    registrar.register_new_patient(
+    new_patient = registrar.register_new_patient(
         national_id=common_id,
         first_name=Name(value='นนทพัฒน์'),
         last_name=Name(value='คนสุขภาพดี'),
@@ -37,17 +73,21 @@ def test_registrar_patient_should_raise_error_when_duplicate_national_id(registr
         current_address=current_address,
         rights=Rights(rights_type=PatientRights.SOCIAL_SECURITY)
     )
-    with raises(DuplicateNationalIDError) as error:
-        registrar.register_new_patient(
-            national_id=common_id,
-            first_name=Name(value='นนทพัฒน์'),
-            last_name=Name(value='คนสุขภาพดี'),
-            phone_number=PhoneNumber(value='0123456789'),
-            date_of_birth=DateOfBirth(year=1990, month=12, day=31),
-            registered_address=registered_address,
-            current_address=current_address,
-            rights=Rights(rights_type=PatientRights.SOCIAL_SECURITY)        )
-    assert 'เลขบัตรประชาชนนี้มีในระบบแล้ว' in str(error.value)
+    duplicate_patient = registrar.register_new_patient(
+        national_id=common_id,
+        first_name=Name(value='นนทพัฒน์'),
+        last_name=Name(value='คนสุขภาพดี'),
+        phone_number=PhoneNumber(value='0123456789'),
+        date_of_birth=DateOfBirth(year=1990, month=12, day=31),
+        registered_address=registered_address,
+        current_address=current_address,
+        rights=Rights(rights_type=PatientRights.SOCIAL_SECURITY)
+    )
+
+    assert new_patient.id == duplicate_patient.id
+    assert new_patient.national_id.id == duplicate_patient.national_id.id
+    assert new_patient.first_name.value == 'นนทพัฒน์'
+    assert duplicate_patient.first_name.value == 'นนทพัฒน์'
 
 
 def test_patient_registrar_should_raise_error_when_national_id_invalid(registrar, registered_address, current_address, vital_signs):
