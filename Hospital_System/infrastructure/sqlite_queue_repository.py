@@ -91,10 +91,6 @@ class SqlQueueRepository(QueueRecord):
                 res = conn.execute(self._SELECT_BY_ID_QUERY, (str(queue.id),))
                 row = res.fetchone()
                 is_new = row is None
-                #
-                # if not is_new:
-                #     print(f"DEBUG: เจอของเก่า ID {row['q_id']} ทั้งที่กำลังจะเซฟ ID {queue.id}")
-
 
                 diag_data = self._prepare_diagnosis(queue)
 
@@ -102,20 +98,22 @@ class SqlQueueRepository(QueueRecord):
                     # ถ้าเป็นของใหม่ ใช้ INSERT ธรรมดา
                     data_tuple = self._map_entity_to_tuple(queue, diag_data)
                     conn.execute(self._INSERT_QUEUE_QUERY, data_tuple)
-                else:
-                    # 🚩 2. ถ้าของเดิมมีอยู่แล้ว ต้องใช้ UPDATE + Version Check เท่านั้น!
-                    current_ver = queue.version.number
-                    old_ver = queue.version.number - 1
 
-                    data = self._map_patient_to_data_for_sql(current_ver, diag_data,
-                                                             old_ver, queue)
+    def update(self, queue: Queue) -> None:
+        with closing(self._get_connection()) as conn:
+            with conn:
 
-                    cursor = conn.execute(self._UPDATE_QUEUE_QUERY, data)
+                current_ver = queue.version.number
+                old_ver = queue.version.number - 1
+                diag_data = self._prepare_diagnosis(queue)
+                data = self._map_patient_to_data_for_sql(
+                    current_ver, diag_data, old_ver, queue)
 
-                    # 🚩 3. ถ้าไม่มีแถวไหนถูกอัปเดต แปลว่า Version ไม่ตรง!
-                    if cursor.rowcount == 0:
-                        raise RuntimeError("ข้อมูลใบคิวถูก update โดยผู้อื่นไปก่อนหน้าแล้ว")
+                cursor = conn.execute(self._UPDATE_QUEUE_QUERY, data)
 
+            # 🚩 3. ถ้าไม่มีแถวไหนถูกอัปเดต แปลว่า Version ไม่ตรง!
+            if cursor.rowcount == 0:
+                raise RuntimeError("ข้อมูลใบคิวถูก update โดยผู้อื่นไปก่อนหน้าแล้ว")
 
     def get_by_queue_id(self, queue_id: UUID) -> Queue | None:
         with closing(self._get_connection()) as conn:

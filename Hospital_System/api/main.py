@@ -100,7 +100,7 @@ def register_patient(request: RegisterRequest) -> dict:
             province=request.province, postal_code=request.postal_code
         )
 
-        new_patient = registrar.register_new_patient(
+        registered_patient = registrar.register_new_patient(
             national_id=NationalID(id=request.national_id),
             first_name=Name(value=request.first_name),
             last_name=Name(value=request.last_name),
@@ -111,12 +111,10 @@ def register_patient(request: RegisterRequest) -> dict:
             rights=Rights(rights_type=request.rights_type)
         )
 
-        active_queue = registrar.get_patient(new_patient.national_id)
-
         return {
             "message": "ลงทะเบียนสำเร็จ!",
-            "national_id": str(active_queue.national_id.id),
-            'first_name': str(new_patient.first_name.value)
+            "national_id": str(registered_patient.national_id.id),
+            'first_name': str(registered_patient.first_name.value)
         }
 
     except ValueError as e:

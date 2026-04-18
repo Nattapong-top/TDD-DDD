@@ -27,7 +27,7 @@ def test_sqlite_queue_repo_should_update_existing_queue(patient, queue, queue_re
 
     queue_repo.save(sample_queue)
     sample_queue.start_consultation()
-    queue_repo.save(sample_queue)
+    queue_repo.update(sample_queue)
     updated_queue = queue_repo.get_by_queue_id(sample_queue.id)
 
     assert updated_queue.status == QueueStatus.IN_PROGRESS
@@ -55,6 +55,7 @@ def test_sqlite_queue_repo_should_return_empty_list_when_db_is_empty(queue_repo)
     assert len(result) == 0
     os.remove(queue_repo.db_path)
 
+
 def test_sqlite_queue_repo_should_save_extremely_long_diagnosis(queue_repo, queue):
     queue_repo.create_schema()
     queue.start_consultation()
@@ -79,6 +80,7 @@ def test_sqlite_queue_repo_should_save_extremely_long_diagnosis(queue_repo, queu
     assert retrieved.diagnosis.treatment == max_treatment
     os.remove(queue_repo.db_path)
 
+
 def test_sqlite_queue_queue_repo_should_raise_error_when_concurrency_conflict(queue_repo, queue):
     queue_repo.create_schema()
     queue_repo.save(queue)
@@ -89,14 +91,30 @@ def test_sqlite_queue_queue_repo_should_raise_error_when_concurrency_conflict(qu
     assert nurse_a_view.version.number == 1
 
     nurse_a_view.start_consultation()
-    queue_repo.save(nurse_a_view)
+    queue_repo.update(nurse_a_view)
     assert nurse_a_view.version.number == 2
-
 
     nurse_b_view.cancel_visit()
 
     with raises(RuntimeError) as error:
-        queue_repo.save(nurse_b_view)
+        queue_repo.update(nurse_b_view)
         os.remove(queue_repo.db_path)
 
-        assert 'ข้อมูลใบคิวถูก update โดยผู้อื่นไปก่อนหน้าแล้ว' in str(error.value)
+    assert 'ข้อมูลใบคิวถูก update โดยผู้อื่นไปก่อนหน้าแล้ว' in str(error.value)
+
+
+def test_sqlite_queue_repo_should_update_queue_when_have_id_(queue_repo, queue):
+    queue_repo.save(queue)
+    retrieved = queue_repo.get_by_queue_id(queue.id)
+    assert retrieved is not None
+    assert retrieved.id == queue.id
+    assert retrieved.version.number == 1
+
+    retrieved.start_consultation()
+    assert retrieved.version.number == 2
+
+    queue_repo.update(retrieved)
+
+    db_queue = queue_repo.get_by_queue_id(queue.id)
+    assert db_queue.status == QueueStatus.IN_PROGRESS
+    assert db_queue.version.number == 2

@@ -1,3 +1,4 @@
+from abc import ABC
 from datetime import date
 from typing import List, Optional
 from uuid import UUID
@@ -31,7 +32,7 @@ class BrokenPatientRecord(PatientRecord):
     def update(self, patient: Patient) -> None:
         pass
 
-class FakeQueueRecord(QueueRecord):
+class FakeQueueRecord(QueueRecord, ABC):
     def __init__(self):
         self.queues: List[Queue] = []
 
@@ -54,3 +55,6 @@ class FakeQueueRecord(QueueRecord):
             if queue.id == queue_id:
                 return queue
         return None
+
+    def update(self, queue: Queue) -> None:
+        pass

@@ -23,23 +23,20 @@ class QueueService:
 
     def start_consultation(self, queue_id: UUID) -> Queue:
         queue = self._get_queue_or_raise(queue_id)
-
         queue.start_consultation()
-        self.queue_repo.save(queue)
+        self.queue_repo.update(queue)
         return queue
 
     def complete_visit(self, queue_id: UUID, diagnosis: Diagnosis) -> Queue:
         queue = self._get_queue_or_raise(queue_id=queue_id)
-
         queue.complete_visit(diagnosis)
-        self.queue_repo.save(queue)
+        self.queue_repo.update(queue)
         return queue
 
     def cancel_visit(self, queue_id: UUID) -> Queue:
         queue = self._get_queue_or_raise(queue_id=queue_id)
-
         queue.cancel_visit()
-        self.queue_repo.save(queue)
+        self.queue_repo.update(queue)
         return queue
 
     def get_active_queue_by_patient(self, patient_id: UUID, search_date: date = None) -> Queue | None:
