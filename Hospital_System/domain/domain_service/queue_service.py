@@ -92,3 +92,6 @@ class QueueService:
         if queue is None:
             raise ValueError(f'ไม่พบใบคิวรหัส {queue_id} ในระบบครับ')
         return queue
+
+    def get_queue(self, queue_id: UUID) -> Queue | None:
+        return self.queue_repo.get_by_queue_id(queue_id)

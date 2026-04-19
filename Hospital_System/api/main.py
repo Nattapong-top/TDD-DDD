@@ -114,7 +114,7 @@ def health_check():
 @app.get("/api/queues/{queue_id}")
 def get_queue_status(queue_id: UUID) -> dict:
     qs = HospitalRegistry.queue_service()
-    queue = qs.repo.get_by_queue_id(queue_id)
+    queue = qs.get_queue(queue_id)
     if not queue:
         raise HTTPException(status_code=404, detail="ไม่พบใบคิวนี้ในระบบ")
 
