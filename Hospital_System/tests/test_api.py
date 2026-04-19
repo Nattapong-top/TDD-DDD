@@ -1,9 +1,9 @@
 # Hospital_System/tests/test_api.py
+from datetime import date
 
 
 def test_api_register_new_patient_should_return_success(client, valid_patient_payload):
     # 1. จำลองข้อมูล JSON ที่หน้าเว็บจะส่งมาให้ (เหมือนกรอกฟอร์ม)
-
     # 2. ยิง API แบบ POST ไปที่ประตูรับลงทะเบียน
     response = client.post('/api/patients/register', json=valid_patient_payload)
 
@@ -38,3 +38,38 @@ def test_api_registrar_patient_should_fail_when_invalid_nation_id(client, valid_
 
     assert response.status_code == 400
     assert 'String should match pattern' in response.json()['detail']
+
+def test_api_new_queue_should_return_success_when_have_patient_id_and_vital_sign(client, valid_patient_payload):
+    """
+        Test the full integration flow:
+        1. Register a new patient.
+        2. Record vital signs and issue a queue.
+    """
+
+    # ลงทะเบียนผู้ป่วย
+    reg_res = client.post('/api/patients/register', json=valid_patient_payload)
+    new_patient_id = reg_res.json()['id']
+
+    triage_payload = {
+        "patient_id": new_patient_id,
+        "vitals": {
+            "systolic": 120, "diastolic": 80,
+            "weight": 70.5, "height": 175.0,
+            "temperature": 36.5,
+            "symptom": "ปวดหัว ตัวร้อน"
+        }
+    }
+    # ออกคิว ส่ง ข้อมูลสัญญาชีพและซักประวัติ
+    response = client.post('/api/triage', json=triage_payload)
+
+    # ... ก่อน assert status_code ...
+    if response.status_code == 422:
+        print(f"\n❌ ป๋าครับ Pydantic ด่าว่า: {response.json()['detail']}")
+
+    # ตรวจคำตอบ
+    assert response.status_code == 200
+    assert 'queue_number' in response.json()
+    print(response.json()['queue_id'])
+    assert response.json()['queue_number'] == 1
+    assert response.json()['status'] == 'รอ'
+    assert response.json()['queue_date'] == date.today().isoformat()

@@ -1,6 +1,7 @@
 import os
 import sys
 from contextlib import asynccontextmanager
+from datetime import date
 from uuid import UUID
 
 from fastapi import FastAPI, HTTPException
@@ -15,7 +16,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from Hospital_System.domain.hospital_registry import HospitalRegistry
 from Hospital_System.domain.value_object import (
     NationalID, Name, PhoneNumber, DateOfBirth, Address, Province,
-    Rights, PatientRights
+    Rights, PatientRights, VitalSigns, BloodPressure, Weight, Height, Temperature
 )
 
 
@@ -33,6 +34,7 @@ app = FastAPI(
     title="Hospital Queue API - Paa Top IT",
     lifespan=lifespan
 )
+
 
 # --- จุดบริการ (Endpoints) ---
 class AddressSchema(BaseModel):
@@ -58,9 +60,25 @@ class RegisterRequest(BaseModel):
     rights_type: PatientRights
 
 
+# --- ข้อมูลสัญญาณชีพ (Schema) ---
+class VitalSignsSchema(BaseModel):
+    systolic: int
+    diastolic: int
+    weight: float
+    height: float
+    temperature: float
+    symptom: str
+
+
+# --- ข้อมูลรับเข้าสำหรับการออกคิว ---
+class TriageRequest(BaseModel):
+    patient_id: UUID  # ต้องส่ง ID ของคนไข้ที่ได้จากตอนลงทะเบียนมาด้วย
+    vitals: VitalSignsSchema
+
+
 # 1. สร้างฟังก์ชันแปลงโฉม (Mapper)
 # ให้มันรับ AddressSchema (ก้อนเล็ก) แล้วคืนค่าเป็น Address VO
-def to_address_vo(addr_schema: AddressSchema) -> Address:
+def _to_address_vo(addr_schema: AddressSchema) -> Address:
     return Address(
         house_number=addr_schema.house_number,
         street=addr_schema.street,
@@ -114,17 +132,17 @@ def register_patient(request: RegisterRequest) -> dict:
         registrar = HospitalRegistry.patient_registrar()
 
         # 🚩 แกะที่อยู่ที่ 1: ตามทะเบียนบ้าน
-        # ** request.registered_address.model_dump()
-        registered_addr = to_address_vo(request.registered_address)
+        registered_addr = _to_address_vo(request.registered_address)
 
         # 🚩 แกะที่อยู่ที่ 2: ที่อยู่ปัจจุบัน
-        current_addr = to_address_vo(request.current_address)
+        current_addr = _to_address_vo(request.current_address)
 
         registered_patient = _registrar_patient_detail(current_addr, registered_addr,
-                                                registrar, request)
+                                                       registrar, request)
 
         return {
             "message": "ลงทะเบียนสำเร็จ!",
+            'id': str(registered_patient.id),
             "national_id": str(registered_patient.national_id.id),
             'first_name': str(registered_patient.first_name.value)
         }
@@ -133,12 +151,58 @@ def register_patient(request: RegisterRequest) -> dict:
         # ถ้า National ID ซ้ำ หรือข้อมูลผิดกฎ Domain มันจะเด้งมาที่นี่
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        # กันเหนียวเผื่อมี Error อื่นๆ
-        raise HTTPException(status_code=500, detail="เกิดข้อผิดพลาดภายในระบบ")
+        # 🚩 แก้บรรทัดนี้ชั่วคราวเพื่อให้เห็นว่ามันด่าอะไร
+        print(f"❌ ป๋าครับ มันระเบิดเพราะ: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/triage")
+def record_triage(request: TriageRequest) -> dict:
+    try:
+        # 1. เรียกใช้ Service (สมมติป๋ามี QueueService ใน Registry แล้ว)
+        queue_service = HospitalRegistry.queue_service()
+
+        # 2. แปลงข้อมูลจาก Schema เป็น Value Objects (VO)
+        # 💡 นี่คือจุดที่ป๋าเอา "ความรู้ DDD" มาใช้ป้องกันข้อมูลเน่าเข้าสู่ระบบ
+        vitals = _to_vital_signs_vo(request)
+
+        # 3. สั่งออกคิวจริง
+        new_queue = queue_service.issue_new_queue(
+            patient_id=request.patient_id,
+            today=date.today(),
+            vital_signs=vitals
+        )
+
+        return {
+            "message": "ซักประวัติสำเร็จ และออกคิวเรียบร้อย",
+            "queue_id": str(new_queue.id),
+            'queue_date': str(new_queue.queue_date.isoformat()),
+            "queue_number": str(new_queue.queue_number.id),
+            "status": str(new_queue.status.value)
+        }
+
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+def _to_vital_signs_vo(request: TriageRequest) -> VitalSigns:
+    vitals = VitalSigns(
+        blood_pressure=BloodPressure(
+            systolic=request.vitals.systolic,
+            diastolic=request.vitals.diastolic
+        ),
+        weight=Weight(value=request.vitals.weight),
+        height=Height(value=request.vitals.height),
+        temperature=Temperature(value=request.vitals.temperature),
+        symptom=request.vitals.symptom
+    )
+    return vitals
 
 
 def _registrar_patient_detail(current_addr: Address, registered_addr: Address, registrar: PatientRegistrar,
-                       request: RegisterRequest) -> Patient:
+                              request: RegisterRequest) -> Patient:
     registered_patient = registrar.register_new_patient(
         national_id=NationalID(id=request.national_id),
         first_name=Name(value=request.first_name),
