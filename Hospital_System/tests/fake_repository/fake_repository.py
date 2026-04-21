@@ -4,7 +4,7 @@ from typing import List, Optional
 from uuid import UUID
 
 from Hospital_System.domain.entities import Patient, Queue
-from Hospital_System.domain.interface.repository import PatientRecord, QueueRecord
+from Hospital_System.domain.interfaces import PatientRecord, QueueRecord
 from Hospital_System.domain.value_object import NationalID, QueueStatus
 
 

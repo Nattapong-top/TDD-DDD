@@ -7,7 +7,7 @@ from uuid import UUID
 from jedi.inference.compiled import value
 
 from Hospital_System.domain.entities import Queue
-from Hospital_System.domain.interface.repository import QueueRecord
+from Hospital_System.domain.interfaces import QueueRecord
 from Hospital_System.domain.value_object import (
     QueueStatus, Version, VitalSigns, BloodPressure, Weight, Height,
     Temperature, Number, MedicineInfo, Diagnosis
@@ -170,7 +170,6 @@ class SqlQueueRepository(QueueRecord):
 
         queues = []
         for row in rows:
-            print(f"ป๋าครับ ในแถวนี้มีคอลัมน์อะไรบ้าง: {row.keys()}")
             # แปลงข้อมูลแต่ละแถว (row) กลับมาเป็น Queue Object
             q = Queue(
                 id=UUID(row['q_id']),

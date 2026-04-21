@@ -206,3 +206,21 @@ def valid_patient_payload():
         },
         "rights_type": "ประกันสังคม"
     }
+
+@fixture
+def api_new_queues(client, valid_patient_payload):
+    reg_res = client.post('/api/patients/register', json=valid_patient_payload)
+    new_patient_id = reg_res.json()['id']
+
+    triage_payload = {
+        "patient_id": new_patient_id,
+        "vitals": {
+            "systolic": 120, "diastolic": 80,
+            "weight": 70.5, "height": 175.0,
+            "temperature": 36.5,
+            "symptom": "ปวดหัว ตัวร้อน"
+        }
+    }
+    # ออกคิว ส่ง ข้อมูลสัญญาชีพและซักประวัติ
+    new_queue = client.post('/api/triage', json=triage_payload)
+    return new_queue

@@ -5,7 +5,7 @@ from uuid import UUID
 
 from Hospital_System.domain.custom_error import DuplicationQueueError
 from Hospital_System.domain.entities import Queue
-from Hospital_System.domain.interface.repository import QueueRecord
+from Hospital_System.domain.interfaces import QueueRecord
 from Hospital_System.domain.value_object import Number, VitalSigns, QueueStatus, Diagnosis
 
 

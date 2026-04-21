@@ -74,24 +74,15 @@ def test_api_new_queue_should_return_success_when_have_patient_id_and_vital_sign
     assert response.json()['status'] == 'รอ'
     assert response.json()['queue_date'] == date.today().isoformat()
 
-def test_api_get_all_queues_today_should_return_list_all_queues_today(client, valid_patient_payload):
-    reg_res = client.post('/api/patients/register', json=valid_patient_payload)
-    new_patient_id = reg_res.json()['id']
-
-    triage_payload = {
-        "patient_id": new_patient_id,
-        "vitals": {
-            "systolic": 120, "diastolic": 80,
-            "weight": 70.5, "height": 175.0,
-            "temperature": 36.5,
-            "symptom": "ปวดหัว ตัวร้อน"
-        }
-    }
-    # ออกคิว ส่ง ข้อมูลสัญญาชีพและซักประวัติ
-    q = client.post('/api/triage', json=triage_payload)
+def test_api_get_all_queues_today_should_return_list_all_queues_today(api_new_queues, client):
+    q = api_new_queues
     assert q.status_code == 200
     response = client.get('/api/nurse/queues/today')
 
     assert response.status_code == 200
-    assert isinstance(response.json(), list)
-    print(response.json())
+    data = response.json()
+    assert isinstance(data, list)
+    assert len(data) > 0
+    assert data[0]['queue_number'] == '1'
+    assert data[0]['queue_id'] == q.json()['queue_id']
+    print(q.json())
