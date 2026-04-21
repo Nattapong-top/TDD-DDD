@@ -4,6 +4,8 @@ from contextlib import closing
 from datetime import date
 from uuid import UUID
 
+from jedi.inference.compiled import value
+
 from Hospital_System.domain.entities import Queue
 from Hospital_System.domain.interface.repository import QueueRecord
 from Hospital_System.domain.value_object import (
@@ -62,6 +64,10 @@ class SqlQueueRepository(QueueRecord):
         SELECT * FROM queue 
         ORDER BY q_date DESC, p_num
         DESC LIMIT 1
+    """
+
+    _SELECT_ALL_QUEUES_TODAY_QUERY = """
+        SELECT q_id, p_id, p_num, q_date, status FROM queue WHERE q_date = ?
     """
 
     _SELECT_BY_ID_QUERY = 'SELECT * FROM queue WHERE q_id = ?'
@@ -151,6 +157,32 @@ class SqlQueueRepository(QueueRecord):
             if not row:
                 return None
             return self._map_row_to_entity(row)
+
+    def get_all_queues_today(self, today: date) -> list[Queue]:
+        with closing(self._get_connection()) as conn:
+            conn.row_factory = sqlite3.Row
+            rows = conn.execute(
+                self._SELECT_ALL_QUEUES_TODAY_QUERY,
+                (today.isoformat(),)).fetchall()
+
+        if not rows:
+            return []
+
+        queues = []
+        for row in rows:
+            print(f"ป๋าครับ ในแถวนี้มีคอลัมน์อะไรบ้าง: {row.keys()}")
+            # แปลงข้อมูลแต่ละแถว (row) กลับมาเป็น Queue Object
+            q = Queue(
+                id=UUID(row['q_id']),
+                patient_id=UUID(row['p_id']),
+                queue_number=Number(id=row['p_num']),
+                # fromisoformat(): คือการแปลงจาก String(ตัวหนังสือจาก DB)
+                # -> Object(วันที่)...(ใช้ตอนจะเอาข้อมูลเข้าบ้าน / Domain)
+                queue_date=date.fromisoformat(row['q_date']),
+                status=QueueStatus(row['status']),
+            )
+            queues.append(q)
+        return queues
 
     # =====================================================================
     # 3. HELPER METHODS (ลูกมือรับจบงานถึกทน)

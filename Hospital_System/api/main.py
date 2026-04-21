@@ -94,21 +94,25 @@ def health_check():
     return {"message": "API Online ปลอดภัยดีครับป๋า", "status": "Ready"}
 
 
-# # 🚩 จุดที่ 1: ต้องเอา /today ไว้ข้างบน {queue_id} เสมอ!
-# @app.get("/api/queues/today")
-# def get_all_queues_today():
-#     """เมนูสำหรับพยาบาล: ดูรายชื่อคิวทุกคนของวันนี้"""
-#     qs = HospitalRegistry.queue_service()
-#     queues = qs.repo.get_today_queues(date.today())
-#
-#     return [
-#         {
-#             "queue_number": q.queue_number.id,
-#             "status": q.status.value,
-#             "patient_id": str(q.patient_id),
-#             "queue_id": str(q.id)
-#         } for q in sorted(queues, key=lambda x: x.queue_number.id)
-#     ]
+# 🚩 จุดที่ 1: ต้องเอา /today ไว้ข้างบน {queue_id} เสมอ!
+@app.get("/api/nurse/queues/today")
+def get_all_queues_today() -> list:
+    """เมนูสำหรับพยาบาล: ดูรายชื่อคิวทุกคนของวันนี้"""
+    qs = HospitalRegistry.queue_service()
+
+
+    queues = qs.get_all_queues_today(date.today())
+
+    return [{
+        'queue_id': str(q.id),
+        'queue_number': str(q.queue_number.id),
+        'status': q.status.value,
+        'patient_id': str(q.patient_id),
+        # isoformat(): คือการแปลงจาก Object(วันที่) -> String(ตัวหนังสือ)...(ใช้ตอนจะเอาข้อมูลไปโชว์)
+        'queue_date': str(q.queue_date.isoformat()),
+    } for q in queues]
+
+
 
 
 @app.get("/api/queues/{queue_id}")

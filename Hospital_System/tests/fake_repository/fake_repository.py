@@ -58,3 +58,6 @@ class FakeQueueRecord(QueueRecord, ABC):
 
     def update(self, queue: Queue) -> None:
         pass
+
+    def get_all_queues_today(self, queue_date: date) -> List[Queue]:
+        pass

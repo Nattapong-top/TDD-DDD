@@ -26,3 +26,7 @@ class QueueRecord(ABC):
     @abstractmethod
     def get_by_queue_id(self, queue_id: UUID) -> Optional[Queue]:
         pass
+
+    @abstractmethod
+    def get_all_queues_today(self) -> list[Queue]:
+        pass

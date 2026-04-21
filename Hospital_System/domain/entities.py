@@ -102,7 +102,7 @@ class Queue(DomainEntity):
     patient_id: UUID
     queue_number: Number
     queue_date: date
-    vital_signs: VitalSigns
+    vital_signs: Optional[VitalSigns] = None
     status: QueueStatus
     diagnosis: Optional[Diagnosis] = None
     version: Version = Field(default=Version(number=1))

@@ -95,3 +95,6 @@ class QueueService:
 
     def get_queue(self, queue_id: UUID) -> Queue | None:
         return self.queue_repo.get_by_queue_id(queue_id)
+
+    def get_all_queues_today(self, today: date) -> list[Queue]:
+        return self.queue_repo.get_all_queues_today(today)
