@@ -4,8 +4,6 @@ from contextlib import closing
 from datetime import date
 from uuid import UUID
 
-from jedi.inference.compiled import value
-
 from Hospital_System.domain.entities import Queue
 from Hospital_System.domain.interfaces import QueueRecord
 from Hospital_System.domain.value_object import (

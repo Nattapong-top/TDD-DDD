@@ -1,6 +1,6 @@
 # queue_service.py
 from datetime import datetime, date
-from typing import Tuple
+from typing import Tuple, Optional
 from uuid import UUID
 
 from Hospital_System.domain.custom_error import DuplicationQueueError
@@ -13,8 +13,8 @@ class QueueService:
     def __init__(self, queue_repo: QueueRecord) -> None:
         self.queue_repo = queue_repo
 
-    def issue_new_queue(self, patient_id: UUID, today: date, vital_signs: VitalSigns) -> Queue:
-        self._ensure_no_duplicate_queue(patient_id, today)
+    def issue_new_queue(self, patient_id: UUID, today: date, vital_signs: Optional[VitalSigns]) -> Queue:
+        self._ensure_no_duplicate_queue_and_no_vital_signs(patient_id, today, vital_signs)
         last_date, last_num = self._check_queue_of_day()
         next_date, next_num = self._get_next_number(last_date, last_num, today)
         new_queue = self._create_new_queue(patient_id, next_date, next_num, vital_signs)
@@ -76,7 +76,9 @@ class QueueService:
         last_date = last_queue.queue_date if last_queue else date(1990, 1, 1)
         return last_date, last_num
 
-    def _ensure_no_duplicate_queue(self, patient_id: UUID, today: date) -> None:
+    def _ensure_no_duplicate_queue_and_no_vital_signs(self, patient_id: UUID, today: date, vital_signs:Optional[VitalSigns]) -> None:
+        if vital_signs is None:
+            raise VitalSignsMissingError()
         existing_queue = self.queue_repo.find_active_queue_by_patient(patient_id=patient_id, queue_date=today)
         if existing_queue:
             raise DuplicationQueueError(f'คนไข้ ID {patient_id} จองคิวซ้ำไม่ได้ครับ')

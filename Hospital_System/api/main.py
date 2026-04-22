@@ -2,11 +2,13 @@ import os
 import sys
 from contextlib import asynccontextmanager
 from datetime import date
+from typing import Optional
 from uuid import UUID
 
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
+from Hospital_System.domain.custom_error import VitalSignsMissingError
 from Hospital_System.domain.domain_service.patient_registrar import PatientRegistrar
 from Hospital_System.domain.entities import Patient
 
@@ -73,7 +75,7 @@ class VitalSignsSchema(BaseModel):
 # --- ข้อมูลรับเข้าสำหรับการออกคิว ---
 class TriageRequest(BaseModel):
     patient_id: UUID  # ต้องส่ง ID ของคนไข้ที่ได้จากตอนลงทะเบียนมาด้วย
-    vitals: VitalSignsSchema
+    vitals: Optional[VitalSignsSchema] = None
 
 
 # 1. สร้างฟังก์ชันแปลงโฉม (Mapper)
@@ -162,6 +164,8 @@ def register_patient(request: RegisterRequest) -> dict:
 
 @app.post("/api/triage")
 def record_triage(request: TriageRequest) -> dict:
+    if request.vitals is None:
+        raise HTTPException(status_code=400, detail='ลืมส่งสัญญาณชีพมานะ ออกคิวไม่ได้ครับ')
     try:
         # 1. เรียกใช้ Service (สมมติป๋ามี QueueService ใน Registry แล้ว)
         queue_service = HospitalRegistry.queue_service()
@@ -185,7 +189,7 @@ def record_triage(request: TriageRequest) -> dict:
             "status": str(new_queue.status.value)
         }
 
-    except ValueError as e:
+    except VitalSignsMissingError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

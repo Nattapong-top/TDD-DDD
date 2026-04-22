@@ -27,3 +27,11 @@ class RegistryNotConfiguredError(DomainError):
 
 class DuplicateNationalIDError(DomainError):
     pass
+
+
+class VitalSignsMissingError(DomainError):
+    """ด่าเวลาพยายามออกคิวโดยไม่มีสัญญาณชีพ"""
+
+    def __init__(self, message="ป๋าครับ! ไม่มีสัญญาณชีพ ออกคิวให้ไม่ได้นะ!"):
+        self.message = message
+        super().__init__(self.message)

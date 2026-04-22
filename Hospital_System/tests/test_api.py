@@ -74,6 +74,20 @@ def test_api_new_queue_should_return_success_when_have_patient_id_and_vital_sign
     assert response.json()['status'] == 'รอ'
     assert response.json()['queue_date'] == date.today().isoformat()
 
+def test_api_triage_should_fail_when_no_vital_sign(client, valid_patient_payload):
+    patient = client.post('/api/patients/register', json=valid_patient_payload)
+
+    data = patient.json()
+    print(data)
+    payload = {
+        "patient_id": data['id'],
+        'vitals': None
+    }
+
+    response = client.post('/api/triage', json=payload)
+    assert response.status_code == 400
+    assert 'ลืมส่งสัญญาณชีพมานะ ออกคิวไม่ได้ครับ' in response.json()['detail']
+
 def test_api_get_all_queues_today_should_return_list_all_queues_today(api_new_queues, client):
     q = api_new_queues
     assert q.status_code == 200
@@ -86,3 +100,4 @@ def test_api_get_all_queues_today_should_return_list_all_queues_today(api_new_qu
     assert data[0]['queue_number'] == '1'
     assert data[0]['queue_id'] == q.json()['queue_id']
     print(q.json())
+
