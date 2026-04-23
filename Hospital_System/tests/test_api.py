@@ -99,5 +99,25 @@ def test_api_get_all_queues_today_should_return_list_all_queues_today(api_new_qu
     assert len(data) > 0
     assert data[0]['queue_number'] == '1'
     assert data[0]['queue_id'] == q.json()['queue_id']
-    print(q.json())
+
+def test_api_start_consultation_successfully(client, api_new_queues):
+    queue_id = api_new_queues.json()['queue_id']
+
+    response = client.post(f'/api/consultations/{queue_id}/start')
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data['status'] == 'กำลังพบหมอ'
+    assert data['queue_id'] == queue_id
+
+
+def test_api_start_consultation_duplicate_queue_should_fail(client, api_new_queues):
+    queue_id = api_new_queues.json()['queue_id']
+    first_call = client.post(f'/api/consultations/{queue_id}/start')
+    assert first_call.status_code == 200
+
+    duplicate_call = client.post(f'/api/consultations/{queue_id}/start')
+    assert duplicate_call.status_code == 400
+    assert 'ไม่สามารถเริ่มตรวจได้' in duplicate_call.json()['detail']
+
 

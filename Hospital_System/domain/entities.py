@@ -136,4 +136,4 @@ class Queue(DomainEntity):
 
     def _validate_status(self):
         if self.status != QueueStatus.WAITING:
-            raise ValueError(f'ไม่สามารถเริ่มตรวจได้ เพราะสถานปัจจบันคือ {self.status.value}')
+            raise InvalidStatusTransitionError(f'ไม่สามารถเริ่มตรวจได้ เพราะสถานปัจจบันคือ {self.status.value}')

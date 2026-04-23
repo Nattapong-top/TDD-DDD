@@ -198,7 +198,7 @@ def test_should_update_queue_entity_is_valid(queue):
 
 def test_should_raise_error_when_start_consultation_but_status_is_not_waiting(queue):
     queue.status = QueueStatus.COMPLETED
-    with raises(ValueError, match='ไม่สามารถเริ่มตรวจได้'):
+    with raises(InvalidStatusTransitionError, match='ไม่สามารถเริ่มตรวจได้'):
         queue.start_consultation()
 
 def test_should_change_status_from_in_progress_to_completed(queue, diagnosis):
@@ -215,7 +215,7 @@ def test_should_raise_error_when_complete_visit_but_not_diagnosis(queue):
 
 def test_should_raise_error_when_IN_PROGRESS_but_status_is_WAITTING(queue):
     queue.status = QueueStatus.IN_PROGRESS
-    with raises(ValueError):
+    with raises(InvalidStatusTransitionError):
         queue.start_consultation()
 
 def test_should_raise_error_when_complete_visit_but_status_is_WAITTING(queue, diagnosis):
