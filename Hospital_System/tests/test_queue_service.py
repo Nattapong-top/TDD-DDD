@@ -5,7 +5,7 @@ from datetime import date, datetime
 from pytest import raises
 
 from Hospital_System.domain.custom_error import (DuplicationQueueError, InvalidStatusTransitionError,
-                                                 InvalidCancelRequestError)
+                                                 InvalidCancelRequestError, QueueNotFoundError)
 from Hospital_System.domain.domain_service.queue_service import QueueService
 from Hospital_System.domain.value_object import (
     Number, QueueStatus, Version)
@@ -74,9 +74,9 @@ def test_should_start_consultation_successfully(queue_repo, queue_service, patie
 
 def test_should_start_consultation_with_invalid_id_raises_error(queue_service):
     invalid_id = uuid.uuid4()
-    with raises(ValueError) as excinfo:
+    with raises(QueueNotFoundError) as excinfo:
         queue_service.start_consultation(queue_id=invalid_id)
-    assert 'ไม่พบใบคิว' in str(excinfo.value)
+    assert 'ไม่พบคิว' in str(excinfo.value)
 
 
 def test_queue_service_should_complete_visit_when_is_valid(new_queue, diagnosis, patient, queue_service, queue_repo):
@@ -95,9 +95,9 @@ def test_queue_service_should_complete_visit_when_is_valid(new_queue, diagnosis,
 
 
 def test_queue_service_should_raise_error_when_complete_visit_patient_id_invalid(queue_service, diagnosis):
-    with raises(ValueError) as excinfo:
+    with raises(QueueNotFoundError) as excinfo:
         queue_service.complete_visit(queue_id=uuid.uuid4(), diagnosis=diagnosis)
-    assert 'ไม่พบใบคิวรหัส' in str(excinfo.value)
+    assert 'ไม่พบคิว' in str(excinfo.value)
 
 
 def test_queue_service_should_raise_error_when_complete_visit_status_witting(queue_service, diagnosis, new_queue, ):

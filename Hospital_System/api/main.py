@@ -8,7 +8,7 @@ from uuid import UUID
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
-from Hospital_System.domain.custom_error import VitalSignsMissingError, InvalidStatusTransitionError
+from Hospital_System.domain.custom_error import VitalSignsMissingError, InvalidStatusTransitionError, QueueNotFoundError
 from Hospital_System.domain.domain_service.patient_registrar import PatientRegistrar
 from Hospital_System.domain.entities import Patient
 
@@ -225,7 +225,7 @@ def _registrar_patient_detail(current_addr: Address, registered_addr: Address, r
 
 
 @app.post('/api/consultations/{queue_id}/start')
-def start_consultation(queue_id: UUID):
+def start_consultation(queue_id: UUID) -> dict:
     try:
         queue_service = HospitalRegistry.queue_service()
         updated_queue = queue_service.start_consultation(queue_id)
@@ -237,6 +237,8 @@ def start_consultation(queue_id: UUID):
         }
     except InvalidStatusTransitionError as e:
         raise HTTPException(status_code=400, detail=str(e))
+    except QueueNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f'เกิดข้อผิดพลาดภายในระบบ {str(e)}')
 

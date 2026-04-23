@@ -3,7 +3,7 @@ from datetime import datetime, date
 from typing import Tuple, Optional
 from uuid import UUID
 
-from Hospital_System.domain.custom_error import DuplicationQueueError
+from Hospital_System.domain.custom_error import DuplicationQueueError, QueueNotFoundError
 from Hospital_System.domain.entities import Queue
 from Hospital_System.domain.interfaces import QueueRecord
 from Hospital_System.domain.value_object import Number, VitalSigns, QueueStatus, Diagnosis
@@ -92,7 +92,7 @@ class QueueService:
     def _get_queue_or_raise(self, queue_id: UUID) -> Queue:
         queue = self.queue_repo.get_by_queue_id(queue_id=queue_id)
         if queue is None:
-            raise ValueError(f'ไม่พบใบคิวรหัส {queue_id} ในระบบครับ')
+            raise QueueNotFoundError(queue_id)
         return queue
 
     def get_queue(self, queue_id: UUID) -> Queue | None:

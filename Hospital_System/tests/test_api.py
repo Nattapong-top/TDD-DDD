@@ -1,5 +1,6 @@
 # Hospital_System/tests/test_api.py
 from datetime import date
+from uuid import uuid4
 
 
 def test_api_register_new_patient_should_return_success(client, valid_patient_payload):
@@ -120,4 +121,11 @@ def test_api_start_consultation_duplicate_queue_should_fail(client, api_new_queu
     assert duplicate_call.status_code == 400
     assert 'ไม่สามารถเริ่มตรวจได้' in duplicate_call.json()['detail']
 
+
+def test_api_start_consultation_not_found_queue_should_return_404(client):
+    fake_id = uuid4()
+    response = client.post(f'/api/consultations/{fake_id}/start')
+
+    assert response.status_code == 404
+    assert 'ไม่พบคิว' in response.json()['detail']
 
