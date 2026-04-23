@@ -8,7 +8,8 @@ from uuid import UUID
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
-from Hospital_System.domain.custom_error import VitalSignsMissingError, InvalidStatusTransitionError, QueueNotFoundError
+from Hospital_System.domain.custom_error import VitalSignsMissingError, InvalidStatusTransitionError, \
+    QueueNotFoundError, MissingDiagnosisError
 from Hospital_System.domain.domain_service.patient_registrar import PatientRegistrar
 from Hospital_System.domain.entities import Patient
 
@@ -18,7 +19,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from Hospital_System.domain.hospital_registry import HospitalRegistry
 from Hospital_System.domain.value_object import (
     NationalID, Name, PhoneNumber, DateOfBirth, Address, Province,
-    Rights, PatientRights, VitalSigns, BloodPressure, Weight, Height, Temperature
+    Rights, PatientRights, VitalSigns, BloodPressure, Weight, Height, Temperature, MedicineInfo, Diagnosis
 )
 
 
@@ -195,6 +196,47 @@ def record_triage(request: TriageRequest) -> dict:
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@app.post('/api/consultations/{queue_id}/start')
+def start_consultation(queue_id: UUID) -> dict:
+    try:
+        queue_service = HospitalRegistry.queue_service()
+        updated_queue = queue_service.start_consultation(queue_id)
+
+        return {
+            'message': 'เริ่มการตรวจสำเร็จ',
+            'queue_id': str(updated_queue.id),
+            'status': updated_queue.status.value
+        }
+    except InvalidStatusTransitionError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except QueueNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f'เกิดข้อผิดพลาดภายในระบบ {str(e)}')
+
+
+@app.post('/api/consultations/{queue_id}/complete')
+def complete_visit(queue_id: UUID, diagnosis_payload: dict) -> dict:
+    try:
+        queue_service = HospitalRegistry.queue_service()
+        diagnosis_vo = _prepare_diagnostic_vo(diagnosis_payload)
+        updated_queue = queue_service.complete_visit(queue_id, diagnosis_vo)
+
+        return {
+            "message": "บันทึกผลการตรวจเรียบร้อย",
+            "queue_id": str(updated_queue.id),
+            "status": updated_queue.status.value
+        }
+    except (InvalidStatusTransitionError, MissingDiagnosisError) as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except QueueNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        # พิมพ์ Error ออกมาดูหน่อยเผื่อเราแกะ JSON ผิด
+        print(f"Error: {str(e)}")
+        raise HTTPException(status_code=500, detail="เกิดข้อผิดพลาดในการบันทึกข้อมูล")
+
+
 def _to_vital_signs_vo(request: TriageRequest) -> VitalSigns:
     vitals = VitalSigns(
         blood_pressure=BloodPressure(
@@ -224,27 +266,14 @@ def _registrar_patient_detail(current_addr: Address, registered_addr: Address, r
     return registered_patient
 
 
-@app.post('/api/consultations/{queue_id}/start')
-def start_consultation(queue_id: UUID) -> dict:
-    try:
-        queue_service = HospitalRegistry.queue_service()
-        updated_queue = queue_service.start_consultation(queue_id)
-
-        return {
-            'message': 'เริ่มการตรวจสำเร็จ',
-            'queue_id': str(updated_queue.id),
-            'status': updated_queue.status.value
-        }
-    except InvalidStatusTransitionError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    except QueueNotFoundError as e:
-        raise HTTPException(status_code=404, detail=str(e))
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f'เกิดข้อผิดพลาดภายในระบบ {str(e)}')
-
-
-
-
+def _prepare_diagnostic_vo(diagnosis_payload: dict) -> Diagnosis:
+    meds = [MedicineInfo(**m) for m in diagnosis_payload.get('medicine_prescribed', [])]
+    diagnosis_vo = Diagnosis(
+        disease=diagnosis_payload.get('disease'),
+        treatment=diagnosis_payload.get('treatment'),
+        medicine_prescribed=meds,
+    )
+    return diagnosis_vo
 
 
 if __name__ == "__main__":

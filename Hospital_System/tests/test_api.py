@@ -101,7 +101,7 @@ def test_api_get_all_queues_today_should_return_list_all_queues_today(api_new_qu
     assert data[0]['queue_number'] == '1'
     assert data[0]['queue_id'] == q.json()['queue_id']
 
-def test_api_start_consultation_successfully(client, api_new_queues):
+def test_api_queue_start_consultation_successfully(client, api_new_queues):
     queue_id = api_new_queues.json()['queue_id']
 
     response = client.post(f'/api/consultations/{queue_id}/start')
@@ -112,7 +112,7 @@ def test_api_start_consultation_successfully(client, api_new_queues):
     assert data['queue_id'] == queue_id
 
 
-def test_api_start_consultation_duplicate_queue_should_fail(client, api_new_queues):
+def test_api_queue_start_consultation_duplicate_queue_should_fail(client, api_new_queues):
     queue_id = api_new_queues.json()['queue_id']
     first_call = client.post(f'/api/consultations/{queue_id}/start')
     assert first_call.status_code == 200
@@ -122,10 +122,23 @@ def test_api_start_consultation_duplicate_queue_should_fail(client, api_new_queu
     assert 'ไม่สามารถเริ่มตรวจได้' in duplicate_call.json()['detail']
 
 
-def test_api_start_consultation_not_found_queue_should_return_404(client):
+def test_api_queue_start_consultation_not_found_queue_should_return_404(client):
     fake_id = uuid4()
     response = client.post(f'/api/consultations/{fake_id}/start')
 
     assert response.status_code == 404
     assert 'ไม่พบคิว' in response.json()['detail']
 
+def test_api_queue_complete_visit_successfully(client, api_new_queues, diagnosis_payload):
+    queue_id = api_new_queues.json()['queue_id']
+    q_start = client.post(f'/api/consultations/{queue_id}/start')
+
+    assert q_start.status_code == 200
+    q_complete = client.post(f'/api/consultations/{queue_id}/complete', json=diagnosis_payload)
+
+    assert q_complete.status_code == 200
+    data = q_complete.json()
+    assert isinstance(data, dict)
+    assert data['queue_id'] == queue_id
+    assert data['status'] == 'ตรวจเสร็จแล้ว'
+    assert data['message'] == 'บันทึกผลการตรวจเรียบร้อย'

@@ -224,3 +224,18 @@ def api_new_queues(client, valid_patient_payload):
     # ออกคิว ส่ง ข้อมูลสัญญาชีพและซักประวัติ
     new_queue = client.post('/api/triage', json=triage_payload)
     return new_queue
+
+@fixture
+def diagnosis_payload(diagnosis):
+    diagnosis_payload = {
+        "disease": "ไข้หวัดใหญ่ สายพันธุ์ A",
+        "treatment": "พักผ่อนเยอะๆ และทานยาตามอาการ",
+        "medicine_prescribed": [
+            {
+                "name": "Tamiflu",
+                "strength": "75mg",
+                "frequency": "เช้า-เย็น หลังอาหาร"
+            }
+        ]
+    }
+    return diagnosis_payload

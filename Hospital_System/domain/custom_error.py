@@ -11,7 +11,9 @@ class InvalidStatusTransitionError(DomainError):
 
 
 class MissingDiagnosisError(DomainError):
-    pass
+    def __init__(self, message='กรุณากรอกข้อมูลการวินิจฉัยด้วยครับ'):
+        self.message = message
+        super().__init__(self.message)
 
 
 class InvalidCancelRequestError(DomainError):

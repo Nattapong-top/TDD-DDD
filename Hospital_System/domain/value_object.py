@@ -40,7 +40,7 @@ class Specialization(Enum):
 class QueueStatus(Enum):
     WAITING = 'รอ'
     IN_PROGRESS = 'กำลังพบหมอ'
-    COMPLETED = 'เสร็จแล้ว'
+    COMPLETED = 'ตรวจเสร็จแล้ว'
     CANCELLED = 'ยกเลิก'
 
 

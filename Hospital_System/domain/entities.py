@@ -132,7 +132,7 @@ class Queue(DomainEntity):
             raise InvalidStatusTransitionError(f'ไม่สามารถจบการตรวจได้ เพราะสถานะปัจจุบันคือ {self.status.value}')
 
         if diagnosis is None:
-            raise MissingDiagnosisError('กรุณากรอกข้อมูลการวินิจฉัยด้วยครับ')
+            raise MissingDiagnosisError()
 
     def _validate_status(self):
         if self.status != QueueStatus.WAITING:
