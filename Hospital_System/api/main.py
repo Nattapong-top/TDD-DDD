@@ -9,7 +9,7 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, ValidationError
 
 from Hospital_System.domain.custom_error import VitalSignsMissingError, InvalidStatusTransitionError, \
-    QueueNotFoundError, MissingDiagnosisError
+    QueueNotFoundError, MissingDiagnosisError, InvalidCancelRequestError
 from Hospital_System.domain.domain_service.patient_registrar import PatientRegistrar
 from Hospital_System.domain.entities import Patient
 
@@ -237,6 +237,30 @@ def complete_visit(queue_id: UUID, diagnosis_payload: dict):
         # ⚠️ ตัวนี้จะดักเฉพาะเรื่องที่เราคาดไม่ถึงจริงๆ (เช่น DB ล่ม)
         print(f"Unexpected Error: {str(e)}")
         raise HTTPException(status_code=500, detail="ระบบขัดข้องชั่วคราว")
+
+
+@app.post('/api/consultations/{queue_id}/cancel')
+def cancel_visit(queue_id: UUID):
+    try:
+        queue_service = HospitalRegistry.queue_service()
+        queue_cancel = queue_service.cancel_visit(queue_id)
+
+        return {
+            'message': 'ยกเลิกคิวเรียบร้อย',
+            'queue_id': str(queue_id),
+            'queue_number': str(queue_cancel.queue_number.id),
+            'status': queue_cancel.status.value
+        }
+    except (InvalidStatusTransitionError, MissingDiagnosisError, InvalidCancelRequestError) as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except QueueNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        # ⚠️ ตัวนี้จะดักเฉพาะเรื่องที่เราคาดไม่ถึงจริงๆ (เช่น DB ล่ม)
+        print(f"Unexpected Error: {str(e)}")
+        raise HTTPException(status_code=500, detail="ระบบขัดข้องชั่วคราว")
+
+
 
 
 def _to_vital_signs_vo(request: TriageRequest) -> VitalSigns:

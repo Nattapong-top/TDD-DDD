@@ -150,3 +150,36 @@ def test_api_queue_complete_visit_whit_none_diagnosis_should_raise_missing_diagn
     assert q_complete.status_code == 400
     data = q_complete.json()
     assert 'กรุณากรอกข้อมูลการวินิจฉัยด้วยครับ' in data['detail']
+
+def test_api_queue_cancel_visit_whit_status_waiting_should_successfully(client, api_new_queues, diagnosis_payload):
+    queue_id = api_new_queues.json()['queue_id']
+    q_cancel = client.post(f'/api/consultations/{queue_id}/cancel')
+    assert q_cancel.status_code == 200
+    data = q_cancel.json()
+    assert isinstance(data, dict)
+    assert data['queue_id'] == queue_id
+    assert data['status'] == 'ยกเลิก'
+
+def test_api_queue_cancel_visit_whit_status_in_progress_should_successfully(client, api_new_queues):
+    queue_id = api_new_queues.json()['queue_id']
+    q_start = client.post(f'/api/consultations/{queue_id}/start')
+    assert q_start.json()['status'] == 'กำลังพบหมอ'
+
+    q_cancel = client.post(f'/api/consultations/{queue_id}/cancel')
+    assert q_cancel.status_code == 200
+    data = q_cancel.json()
+    assert isinstance(data, dict)
+    assert data['queue_id'] == queue_id
+    assert data['status'] == 'ยกเลิก'
+
+def test_api_queue_cancel_visit_with_status_complete_should_return_400(client, api_new_queues, diagnosis_payload):
+    queue_id = api_new_queues.json()['queue_id']
+    q_start = client.post(f'/api/consultations/{queue_id}/start')
+    assert q_start.json()['status'] == 'กำลังพบหมอ'
+
+    q_complete = client.post(f'/api/consultations/{queue_id}/complete', json=diagnosis_payload)
+    assert q_complete.status_code == 200
+
+    q_cancel = client.post(f'/api/consultations/{queue_id}/cancel')
+    assert q_cancel.status_code == 400
+    assert 'ไม่สามารถยกเลิกการตรวจได้' in q_cancel.json()['detail']
