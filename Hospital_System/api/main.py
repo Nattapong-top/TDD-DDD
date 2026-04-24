@@ -6,7 +6,7 @@ from typing import Optional
 from uuid import UUID
 
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 
 from Hospital_System.domain.custom_error import VitalSignsMissingError, InvalidStatusTransitionError, \
     QueueNotFoundError, MissingDiagnosisError
@@ -216,9 +216,10 @@ def start_consultation(queue_id: UUID) -> dict:
 
 
 @app.post('/api/consultations/{queue_id}/complete')
-def complete_visit(queue_id: UUID, diagnosis_payload: dict) -> dict:
+def complete_visit(queue_id: UUID, diagnosis_payload: dict):
     try:
         queue_service = HospitalRegistry.queue_service()
+        # 🚩 ถ้าข้างล่างนี้พ่น MissingDiagnosisError มันจะวิ่งไปหา except 400 ทันที
         diagnosis_vo = _prepare_diagnostic_vo(diagnosis_payload)
         updated_queue = queue_service.complete_visit(queue_id, diagnosis_vo)
 
@@ -228,13 +229,14 @@ def complete_visit(queue_id: UUID, diagnosis_payload: dict) -> dict:
             "status": updated_queue.status.value
         }
     except (InvalidStatusTransitionError, MissingDiagnosisError) as e:
+        # ✅ ตัวนี้จะดักได้ทั้งจาก Helper และจาก Service เลยครับ
         raise HTTPException(status_code=400, detail=str(e))
     except QueueNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
-        # พิมพ์ Error ออกมาดูหน่อยเผื่อเราแกะ JSON ผิด
-        print(f"Error: {str(e)}")
-        raise HTTPException(status_code=500, detail="เกิดข้อผิดพลาดในการบันทึกข้อมูล")
+        # ⚠️ ตัวนี้จะดักเฉพาะเรื่องที่เราคาดไม่ถึงจริงๆ (เช่น DB ล่ม)
+        print(f"Unexpected Error: {str(e)}")
+        raise HTTPException(status_code=500, detail="ระบบขัดข้องชั่วคราว")
 
 
 def _to_vital_signs_vo(request: TriageRequest) -> VitalSigns:
@@ -267,14 +269,22 @@ def _registrar_patient_detail(current_addr: Address, registered_addr: Address, r
 
 
 def _prepare_diagnostic_vo(diagnosis_payload: dict) -> Diagnosis:
-    meds = [MedicineInfo(**m) for m in diagnosis_payload.get('medicine_prescribed', [])]
-    diagnosis_vo = Diagnosis(
-        disease=diagnosis_payload.get('disease'),
-        treatment=diagnosis_payload.get('treatment'),
-        medicine_prescribed=meds,
-    )
-    return diagnosis_vo
+    # 🚩 เช็คเบื้องต้นก่อนส่งให้ Pydantic
+    if not diagnosis_payload or not diagnosis_payload.get('disease'):
+        raise MissingDiagnosisError()
 
+    try:
+        meds_data = diagnosis_payload.get('medicine_prescribed', [])
+        meds = [MedicineInfo(**m) for m in meds_data]
+
+        return Diagnosis(
+            disease=diagnosis_payload.get('disease'),
+            treatment=diagnosis_payload.get('treatment'),
+            medicine_prescribed=meds,
+        )
+    except (ValidationError, TypeError, ValueError) as e:
+        # พ่นเป็น Domain Error ออกไปแทน
+        raise MissingDiagnosisError(f"ข้อมูลวินิจฉัยไม่ถูกต้อง: {str(e)}")
 
 if __name__ == "__main__":
     import uvicorn
