@@ -1,8 +1,10 @@
+import hashlib
 from datetime import date
 from decimal import Decimal
 from enum import Enum
 from typing import Optional
 
+import bcrypt
 from pydantic import (
     BaseModel, Field, field_validator, ConfigDict, model_validator)
 
@@ -192,8 +194,50 @@ class MedicalSpecialty(DomainValueObject):
 class Number(DomainValueObject):
     id: int = Field(..., ge=0, le=500)
 
+
 class Version(DomainValueObject):
     number: int = Field(..., ge=1)
 
     def increment(self) -> 'Version':
         return Version(number=self.number + 1)
+
+
+class Username(DomainValueObject):
+    id: str = Field(..., min_length=5, max_length=20, pattern=r'^[a-zA-Z0-9_-]{5,20}$')
+
+
+class HashedPassword(DomainValueObject):
+    value: str = Field(...)  # นี่คือช่องเก็บ "ซากรหัส" ที่ปั่นเสร็จแล้วลงฐานข้อมูล
+
+    @classmethod
+    def create(cls, plain_password: str) -> "HashedPassword":
+        """
+        ขั้นตอนการสร้างรหัส (ใช้ตอนพนักงานลงทะเบียน หรือเปลี่ยนรหัสใหม่)
+        """
+        # 1. 'เครื่องบดเบื้องต้น' (SHA-256)
+        # เปลี่ยนรหัสจริง (plain_password) ให้เป็นรหัสยาว 64 ตัวที่ bcrypt รับได้แน่นอน
+        pre_hash = hashlib.sha256(plain_password.encode()).hexdigest().encode()
+
+        # 2. 'เครื่องปั่นผสมเกลือ' (bcrypt)
+        # gensalt() คือการสุ่มเครื่องปรุงเพิ่มเข้าไป เพื่อให้รหัสที่เหมือนกัน ปั่นออกมาได้ผลไม่เหมือนกัน
+        salt = bcrypt.gensalt()
+        hashed = bcrypt.hashpw(pre_hash, salt)
+
+        # 3. 'ส่งออกผลลัพธ์'
+        # แปลงจากตัวแปรคอมพิวเตอร์ (bytes) กลับเป็นตัวหนังสือ (str) เพื่อเก็บลงตู้เซฟ
+        return cls(value=hashed.decode())
+
+    def verify(self, plain_password: str) -> bool:
+        """
+        ขั้นตอนการตรวจสอบ (ใช้ตอนพนักงานล็อกอิน)
+        """
+        try:
+            # 1. เอา 'รหัสที่เขากรอกหน้าประตู' มาเข้าเครื่องบดเบื้องต้นแบบเดียวกับตอนสมัคร
+            pre_hash = hashlib.sha256(plain_password.encode()).hexdigest().encode()
+
+            # 2. ให้ bcrypt เทียบว่า 'รหัสที่เพิ่งปั่น' กับ 'ซากที่เก็บในตู้เซฟ' มันมาจากแหล่งเดียวกันไหม
+            # return เป็น True (ผ่าน) หรือ False (ไม่ผ่าน)
+            return bcrypt.checkpw(pre_hash, self.value.encode())
+        except Exception:
+            # ถ้าเกิดอะไรผิดพลาด (เช่น ข้อมูลในตู้เซฟเน่า) ให้ตอบว่า 'ไม่ผ่าน' ไว้ก่อนเพื่อความปลอดภัย
+            return False

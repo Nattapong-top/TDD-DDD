@@ -8,7 +8,7 @@ from Hospital_System.domain.value_object import (
     Name, PhoneNumber, DateOfBirth, Address, Province, PatientRights, Rights,
     BloodPressure, Weight, Height, Temperature, VitalSigns,
     Diagnosis, MedicineInfo, Payment, PaymentType, NationalID, LicenseNumber,
-    Specialization, MedicalSpecialty, Version)
+    Specialization, MedicalSpecialty, Version, Username, HashedPassword)
 
 
 # ส่วนของ VO Name เทสชื่อและนามสกุล
@@ -314,8 +314,6 @@ def test_should_raise_error_when_Temperature_is_negative():
         Temperature(value=-1)
 
 
-
-
 def test_should_create_VitalSigns_is_valid(vital_signs):
     assert vital_signs == VitalSigns(
         blood_pressure=BloodPressure(systolic=120, diastolic=80),
@@ -346,9 +344,6 @@ def test_should_raise_error_when_VitalSigns_symptom_too_long():
             temperature=Temperature(value=39.0),
             symptom='น้ำหมูกไหล ปวดหัว ตัวร้อน หนาวสั่น' * 20
         )
-
-
-
 
 
 def test_create_Diagnosis_is_valid(diagnosis):
@@ -523,15 +518,18 @@ def test_Version_should_create_version_is_valid():
     version = Version(number=1)
     assert version == Version(number=1)
 
+
 def test_Version_should_raises_error_when_invalid_type():
     with raises(ValidationError):
         Version(number='A')
+
 
 def test_Version_should_raises_error_when_number_zero():
     with raises(ValidationError) as excinfo:
         Version(number=0)
 
     assert excinfo.type == ValidationError
+
 
 def test_Version_should_raises_error_when_number_negative():
     with raises(ValidationError) as excinfo:
@@ -544,3 +542,55 @@ def test_Version_should_create_increment_next_version_is_valid():
     assert current_version == Version(number=1)
     next_version = current_version.increment()
     assert next_version == Version(number=2)
+
+
+def test_Username_should_create_username_is_valid():
+    username = Username(id='natta_pong-top')
+    assert username.id == 'natta_pong-top'
+
+def test_Username_should_raise_error_when_username_too_long():
+    with raises(ValueError):
+        Username(id='natta_pong-top'*20)
+
+def test_Username_should_raise_error_when_username_too_short():
+    with raises(ValueError):
+        Username(id='natt')
+
+def test_Username_should_raise_error_when_username_is_str_th():
+    with raises(ValueError):
+        Username(id='ณัฐ_พงศ์-ท๊อป')
+
+
+def test_hashed_password_vo_should_store_value_and_equal():
+    # 1. ทดสอบว่าเก็บค่าได้ และเปรียบเทียบกันได้ (Equality)
+    hash_string = "$2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGGa31yy"
+    hp1 = HashedPassword(value=hash_string)
+    hp2 = HashedPassword(value=hash_string)
+
+    assert hp1.value == hash_string
+    assert hp1 == hp2  # Value Object ต้องเทียบกันที่ "ค่า" ไม่ใช่ "ตำแหน่งเมมโมรี่"
+
+
+def test_hashed_password_full_flow():
+    # 1. ป๋าปั่นรหัสจริง "paa1234"
+    plain_pass = "paa1234"
+    hp = HashedPassword.create(plain_pass)
+
+    # 2. ตรวจสอบเบื้องต้น
+    assert hp.value != plain_pass
+    assert len(hp.value) > 20
+
+    # 3. ทดสอบการ Verify
+    # ✅ ต้องส่งรหัสจริง (plain_pass) เข้าไปเช็ค
+    assert hp.verify(plain_pass) is True
+
+    # ❌ ห้ามส่ง hp.value เข้าไปใน verify เด็ดขาด เพราะมันยาวเกิน 72 bytes!
+    # ถ้าป๋าเขียน hp.verify(hp.value) มันจะระเบิดทันทีครับ
+    assert hp.verify("wrongpass") is False
+
+
+def test_very_long_password_should_pass_now():
+    # ทดสอบรหัสยาว 200 ตัว (Bcrypt ปกติจะตาย แต่ระบบป๋าต้องรอด!)
+    very_long_pass = "p" * 200
+    hp = HashedPassword.create(very_long_pass)
+    assert hp.verify(very_long_pass) is True
