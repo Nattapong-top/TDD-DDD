@@ -1,17 +1,19 @@
 import os
 import uuid
 from datetime import date, datetime
+
 from fastapi.testclient import TestClient
 from pytest import fixture
 
 from Hospital_System.api.main import app
 from Hospital_System.domain.entities import Patient, Queue
 from Hospital_System.domain.hospital_registry import HospitalRegistry
+from Hospital_System.domain.staff_entities import Staff
 from Hospital_System.domain.value_object import (
     Address, Province, MedicineInfo, Diagnosis, Rights, PatientRights, \
     PhoneNumber, Name, DateOfBirth, NationalID, Temperature, Weight, Height,
     BloodPressure, VitalSigns, QueueStatus, \
-    Number, Version)
+    Number, Version, StaffRole)
 from Hospital_System.tests.fake_repository.fake_repository import FakeQueueRecord
 
 
@@ -184,6 +186,18 @@ def new_patient(registrar, vital_signs, registered_address, current_address):
         rights=Rights(rights_type=PatientRights.SOCIAL_SECURITY)
     )
 
+@fixture
+def new_staff_doctor():
+    return Staff.register(
+        username_str="nattapong-top",
+        password_str="Paa-TopIT_12123", # ส่งรหัสสดเข้าไป
+        national_id_str="1234567890123",
+        first_name_str="ณัฐพงศ์",
+        last_name_str="คนรักษาดี",
+        dob_year=1990, dob_month=12, dob_day=31,
+        phone_number_str="0999999999",
+        role=StaffRole.DOCTOR
+    )
 
 
 @fixture

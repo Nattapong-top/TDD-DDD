@@ -3,11 +3,10 @@
 from pydantic import ValidationError
 from pytest import raises
 
-from Hospital_System.domain.custom_error import DuplicateNationalIDError
 from Hospital_System.domain.domain_service.patient_registrar import PatientRegistrar
 from Hospital_System.domain.value_object import (
     NationalID, Name, PhoneNumber, DateOfBirth, Rights, PatientRights)
-from Hospital_System.tests.conftest import vital_signs, new_patient
+from Hospital_System.tests.conftest import vital_signs
 from Hospital_System.tests.fake_repository.fake_repository import (
     BrokenPatientRecord)
 

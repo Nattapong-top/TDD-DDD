@@ -39,6 +39,13 @@ class Specialization(Enum):
     CARDIOLOGY = "โรคหัวใจ"
 
 
+class StaffRole(Enum):
+    DOCTOR = 'หมอ'
+    NURSE = 'พยาบาล'
+    STAFF = 'เจ้าหน้าที่'
+    ADMIN = 'ADMINISTRATOR'
+
+
 class QueueStatus(Enum):
     WAITING = 'รอ'
     IN_PROGRESS = 'กำลังพบหมอ'

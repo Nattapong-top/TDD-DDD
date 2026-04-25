@@ -1,6 +1,3 @@
-from email import message
-
-
 class DomainError(Exception):
     pass
 
@@ -10,6 +7,11 @@ class DuplicationQueueError(DomainError):
 
 
 class InvalidStatusTransitionError(DomainError):
+    def __init__(self, message: str):
+        self.message = message
+        super().__init__(self.message)
+
+class DoNotChangeIDError(DomainError):
     def __init__(self, message: str):
         self.message = message
         super().__init__(self.message)
