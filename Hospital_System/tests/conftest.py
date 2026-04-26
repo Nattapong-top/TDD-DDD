@@ -6,6 +6,7 @@ from fastapi.testclient import TestClient
 from pytest import fixture
 
 from Hospital_System.api.main import app
+from Hospital_System.domain.consultation_entities import Consultation
 from Hospital_System.domain.domain_service.staff_service import StaffService
 from Hospital_System.domain.entities import Patient, Queue
 from Hospital_System.domain.hospital_registry import HospitalRegistry
@@ -221,6 +222,15 @@ def new_register_staff(staff_service):
         role=StaffRole.DOCTOR
     )
     return new_staff
+
+@fixture
+def new_consultation(new_queue, new_staff_doctor):
+    return Consultation(
+        queue_id=new_queue.id,
+        doctor_id=new_staff_doctor.staff_id,
+        patient_id=new_queue.patient_id,
+        vital_signs=new_queue.vital_signs,
+    )
 
 
 @fixture
