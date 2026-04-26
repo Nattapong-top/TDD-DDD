@@ -6,6 +6,7 @@ from fastapi.testclient import TestClient
 from pytest import fixture
 
 from Hospital_System.api.main import app
+from Hospital_System.domain.domain_service.staff_service import StaffService
 from Hospital_System.domain.entities import Patient, Queue
 from Hospital_System.domain.hospital_registry import HospitalRegistry
 from Hospital_System.domain.staff_entities import Staff
@@ -198,6 +199,20 @@ def new_staff_doctor():
         phone_number_str="0999999999",
         role=StaffRole.DOCTOR
     )
+
+@fixture
+def new_register_staff():
+    new_staff = StaffService().register_staff(
+        username_str="nattapong-top",
+        password_str="Paa-TopIT_12123",  # ส่งรหัสสดเข้าไป
+        national_id_str="1234567890123",
+        first_name_str="ณัฐพงศ์",
+        last_name_str="คนรักษาดี",
+        dob_year=1990, dob_month=12, dob_day=31,
+        phone_number_str="0999999999",
+        role=StaffRole.DOCTOR
+    )
+    return new_staff
 
 
 @fixture
