@@ -4,8 +4,9 @@ from typing import List, Optional
 from uuid import UUID
 
 from Hospital_System.domain.entities import Patient, Queue
-from Hospital_System.domain.interfaces import PatientRecord, QueueRecord
-from Hospital_System.domain.value_object import NationalID, QueueStatus
+from Hospital_System.domain.interfaces import PatientRecord, QueueRecord, StaffRepository
+from Hospital_System.domain.staff_entities import Staff
+from Hospital_System.domain.value_object import NationalID, QueueStatus, Username
 
 
 class FakePatientRecord(PatientRecord):
@@ -61,3 +62,23 @@ class FakeQueueRecord(QueueRecord, ABC):
 
     def get_all_queues_today(self, queue_date: date) -> List[Queue]:
         pass
+
+
+class InMemoryStaffRepository(StaffRepository):
+    def __init__(self) -> None:
+        self._staffs: dict[UUID, Staff] = {}
+
+    def save(self, staff: Staff) -> None:
+        self._staffs[staff.staff_id] = staff
+
+    def update(self, staff: Staff) -> None:
+        pass
+
+    def get_by_staff_id(self, staff_id: UUID) -> Optional[Staff]:
+        return self._staffs.get(staff_id, None)
+
+    def get_by_username(self, username: Username) -> Optional[Staff]:
+        return next((s for s in self._staffs.values() if s.username == username), None)
+
+    def get_by_national_id_staff(self, national_id: NationalID) -> Optional[Staff]:
+        return next((s for s in self._staffs.values() if s.national_id == national_id), None)

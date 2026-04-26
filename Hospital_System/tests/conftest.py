@@ -15,7 +15,7 @@ from Hospital_System.domain.value_object import (
     PhoneNumber, Name, DateOfBirth, NationalID, Temperature, Weight, Height,
     BloodPressure, VitalSigns, QueueStatus, \
     Number, Version, StaffRole)
-from Hospital_System.tests.fake_repository.fake_repository import FakeQueueRecord
+from Hospital_System.tests.fake_repository.fake_repository import FakeQueueRecord, InMemoryStaffRepository
 
 
 # 🚩 1. ตัวคุมระบบ: เคลียร์ทุกอย่างก่อนเริ่มเทสแต่ละครั้ง
@@ -201,8 +201,16 @@ def new_staff_doctor():
     )
 
 @fixture
-def new_register_staff():
-    new_staff = StaffService().register_staff(
+def InMem_staff_repo():
+    return InMemoryStaffRepository()
+
+@fixture
+def staff_service(InMem_staff_repo):
+    return StaffService(InMem_staff_repo)
+
+@fixture
+def new_register_staff(staff_service):
+    new_staff = staff_service.register_staff(
         username_str="nattapong-top",
         password_str="Paa-TopIT_12123",  # ส่งรหัสสดเข้าไป
         national_id_str="1234567890123",

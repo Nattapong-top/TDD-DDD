@@ -5,7 +5,9 @@ from typing import Optional, List
 from uuid import UUID
 
 from Hospital_System.domain.entities import Queue, Patient
-from Hospital_System.domain.value_object import NationalID
+from Hospital_System.domain.staff_entities import Staff
+from Hospital_System.domain.value_object import NationalID, Username
+
 
 class QueueRecord(ABC):
     @abstractmethod
@@ -38,6 +40,7 @@ class QueueRecord(ABC):
         """ดึงคิวทั้งหมดของวันนี้ (สำหรับพยาบาล)"""
         pass
 
+
 class PatientRecord(ABC):
     @abstractmethod
     def save(self, patient: Patient) -> None:
@@ -52,4 +55,31 @@ class PatientRecord(ABC):
     @abstractmethod
     def get_by_national_id(self, national_id: NationalID) -> Optional[Patient]:
         """หาคนไข้จากเลขบัตรประชาชน"""
+        pass
+
+
+class StaffRepository(ABC):
+    @abstractmethod
+    def save(self, staff: Staff) -> None:
+        """บันทึกพนักงานใหม่"""
+        pass
+
+    @abstractmethod
+    def update(self, staff: Staff) -> None:
+        """อัพเดทข้อมูลพนักงาน"""
+        pass
+
+    @abstractmethod
+    def get_by_username(self, username: Username) -> Optional[Staff]:
+        """ค้นหาพนักงานด้วย username"""
+        pass
+
+    @abstractmethod
+    def get_by_staff_id(self, staff_id: UUID) -> Optional[Staff]:
+        """ค้าหาพนักงานด้วย staff_id"""
+        pass
+
+    @abstractmethod
+    def get_by_national_id_staff(self, national_id: NationalID) -> Optional[NationalID]:
+        """ค้นหาพนักงานด้วย national_id"""
         pass

@@ -1,11 +1,14 @@
 from uuid import UUID
-
+from pytest import raises
+from Hospital_System.domain.custom_error import DuplicateUsernameError
 from Hospital_System.domain.domain_service.staff_service import StaffService
-from Hospital_System.domain.value_object import StaffRole, HashedPassword, DateOfBirth
+from Hospital_System.domain.value_object import StaffRole, HashedPassword
+from Hospital_System.tests.conftest import new_register_staff, InMem_staff_repo
+from Hospital_System.tests.fake_repository.fake_repository import InMemoryStaffRepository
 
 
-def test_staff_service_register_new_staff_should_succeed():
-    new_staff = StaffService().register_staff(
+def test_staff_service_register_new_staff_should_succeed(InMem_staff_repo):
+    new_staff = StaffService(InMem_staff_repo).register_staff(
         username_str="nattapong-top",
         password_str="Paa-TopIT_12123",  # ส่งรหัสสดเข้าไป
         national_id_str="1234567890123",
@@ -21,10 +24,11 @@ def test_staff_service_register_new_staff_should_succeed():
     assert new_staff.hashed_password.value != "Paa-TopIT_12123"
     assert new_staff.role == StaffRole.DOCTOR
 
-def test_staff_service_register_staff_with_staff_id_should_type_uuid_valid(new_register_staff):
+def test_staff_service_register_staff_with_staff_id_should_type_uuid_valid(new_register_staff,
+                                                                           InMem_staff_repo):
     staff_1 = new_register_staff
-    staff_2 = StaffService().register_staff(
-        username_str="nattapong-top",
+    staff_2 = StaffService(InMem_staff_repo).register_staff(
+        username_str="PaaTop-IT",
         password_str="Paa-TopIT_12123",  # ส่งรหัสสดเข้าไป
         national_id_str="1234567890123",
         first_name_str="ณัฐพงศ์",
@@ -40,3 +44,40 @@ def test_staff_service_register_staff_with_staff_id_should_type_uuid_valid(new_r
     assert staff_1.staff_id != staff_2.staff_id
     print('\n',staff_1.staff_id)
     print(staff_2.staff_id)
+
+
+def test_staff_service_register_staff_should_save_to_repo_success():
+    repo = InMemoryStaffRepository()
+    service = StaffService(repo)
+    new_staff = service.register_staff(
+        username_str="nattapong-top",
+        password_str="Paa-TopIT_12123",  # ส่งรหัสสดเข้าไป
+        national_id_str="1234567890123",
+        first_name_str="ณัฐพงศ์",
+        last_name_str="คนรักษาดี",
+        dob_year=1990, dob_month=12, dob_day=31,
+        phone_number_str="0999999999",
+        role=StaffRole.DOCTOR
+    )
+    db_staff = repo.get_by_username(new_staff.username)
+    assert db_staff is not None
+    assert new_staff == db_staff
+
+
+def test_staff_service_register_staff_with_duplicate_username_should_error(new_register_staff, staff_service,
+                                                                           InMem_staff_repo):
+
+    with raises(DuplicateUsernameError) as err:
+       staff_service.register_staff(
+            username_str="nattapong-top",
+            password_str="Paa-TopIT_12123",  # ส่งรหัสสดเข้าไป
+            national_id_str="1234567890123",
+            first_name_str="ณัฐพงศ์",
+            last_name_str="คนรักษาดี",
+            dob_year=1990, dob_month=12, dob_day=31,
+            phone_number_str="0999999999",
+            role=StaffRole.DOCTOR
+        )
+
+    assert 'มีคนใช้แล้ว' in str(err.value)
+
